@@ -113,8 +113,5 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
                 return cmd;
             }
         }
-
-        public class Parser2 : Parser
-        { }
     }
 }
