@@ -38,6 +38,7 @@ namespace Tuvi.Toolkit.Cli.Sample
             try
             {
                 Console.WriteLine("Hello, Console Toolkit!");
+                Console.WriteLine($"Commandlines: {string.Join(", ", Environment.GetCommandLineArgs())}");
 
                 var parser = Create();
 
@@ -62,11 +63,11 @@ namespace Tuvi.Toolkit.Cli.Sample
         {
             var parser = new MicrosoftParser();
 
-            var root = MicrosoftParser.CreateRoot(
+            var root = parser.CreateRoot(
                 description: "Command line application example.",
                 options: new List<IOption>
                 {
-                    MicrosoftParser.CreateOption<IEnumerable<string>>(
+                    parser.CreateOption<IEnumerable<string>>(
                         names: "-m|--multi".Split('|').ToList(),
                         description: "Multiple option example.",
                         allowMultipleValue: true,
@@ -75,60 +76,60 @@ namespace Tuvi.Toolkit.Cli.Sample
                 },
                 subcommands: new List<ICommand>
                 {
-                    MicrosoftParser.CreateCommand(
+                    parser.CreateCommand(
                         name: "console",
                         description: "ConsoleExtension demo.",
                         action: (cmd) => ConsoleCommand()
                     ),
-                    MicrosoftParser.CreateCommand(
+                    parser.CreateCommand(
                         name: "exit",
                         description: "Exit the application.",
                         action: (cmd) => ExitCommand()
                     ),
-                    MicrosoftParser.CreateCommand(
+                    parser.CreateCommand(
                         name: "type",
                         description: "Option demo.",
                         options: new List<IOption>
                         {
-                            MicrosoftParser.CreateOption<int>(
+                            parser.CreateOption<int>(
                                 names: new List<string> {"-i", "--int", "/Int" },
                                 description: "Integer option."
                             ),
-                            MicrosoftParser.CreateOption<uint>(
+                            parser.CreateOption<uint>(
                                 names: new List<string> {"-u", "--uint", "/UInt" },
                                 description: "Unsigned integer option.",
                                 getDefaultValue: () => 111
                             ),
-                            MicrosoftParser.CreateOption<long>(
+                            parser.CreateOption<long>(
                                 names: new List<string> {"-l", "--long", "/Int64" },
                                 description: "64-bit integer option."
                             ),
-                            MicrosoftParser.CreateOption<bool>(
+                            parser.CreateOption<bool>(
                                 names: new List<string> {"-b", "--bool", "/Boolean" },
                                 description: "Boolean option."
                             ),
-                            MicrosoftParser.CreateOption<float>(
+                            parser.CreateOption<float>(
                                 names: new List<string> {"-f", "--float", "/Single" },
                                 description: "Single-precision floating-point option."
                             ),
-                            MicrosoftParser.CreateOption<double>(
+                            parser.CreateOption<double>(
                                 names: new List<string> {"-d", "--double", "/Double" },
                                 description: "Double-precision floating-point option."
                             ),
-                            MicrosoftParser.CreateOption<string>(
+                            parser.CreateOption<string>(
                                 names: new List<string> {"-s", "--str", "/String" },
                                 description: "String option."
                             ),
-                            MicrosoftParser.CreateOption<EnumOption>(
+                            parser.CreateOption<EnumOption>(
                                 names: new List<string> {"-e", "--enum", "/EnumOption" },
                                 description: "Enum option.",
                                 getDefaultValue: () => EnumOption.unknown
                             ),
-                            MicrosoftParser.CreateOption<FileInfo>(
+                            parser.CreateOption<FileInfo>(
                                 names: new List<string> {"-F", "--file", "/File" },
                                 description: "FileInfo option."
                             ),
-                            MicrosoftParser.CreateOption<DateTime>(
+                            parser.CreateOption<DateTime>(
                                 names: new List<string> {"-t", "--time", "/DateTime" },
                                 description: "DateTime option."
                             ),
