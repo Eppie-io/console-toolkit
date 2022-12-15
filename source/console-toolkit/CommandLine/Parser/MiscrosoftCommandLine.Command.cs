@@ -27,6 +27,16 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
             public List<IOption>? Options { get; set; }
             public List<ICommand>? Subcommands { get; set; }
             public Action<ICommand>? Action { get; set; }
+
+            public IOption? FindOption(string name)
+            {
+                return (from option in Options where option.Names.Contains(name) select option).FirstOrDefault();
+            }
+
+            public IOption<T>? FindOption<T>(string name)
+            {
+                return FindOption(name) as IOption<T>;
+            }
         }
     }
 }

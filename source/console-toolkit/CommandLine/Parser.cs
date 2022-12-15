@@ -22,24 +22,24 @@ namespace Tuvi.Toolkit.Cli.CommandLine
     {
         void Bind(ICommand root);
 
-        static abstract ICommand CreateRoot(
+        ICommand CreateRoot(
             string description = "",
             List<IOption>? options = null,
             List<ICommand>? subcommands = null,
             Action<ICommand>? action = null);
 
-        static abstract ICommand CreateCommand(
+        ICommand CreateCommand(
             string name,
             string description = "",
             List<IOption>? options = null,
             List<ICommand>? subcommands = null,
             Action<ICommand>? action = null);
 
-        static abstract IOption<T> CreateOption<T>(
-            List<string> names, 
+        IOption<T> CreateOption<T>(
+            List<string> names,
             string? description = null,
             Func<T>? getDefaultValue = null,
-            bool allowMultipleValue = false, 
+            bool allowMultipleValue = false,
             string? valueHelpName = null);
 
         void Invoke(string args);

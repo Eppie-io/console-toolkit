@@ -24,7 +24,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
         {
             private System.CommandLine.Command? _root;
 
-            public static ICommand CreateRoot(
+            public virtual ICommand CreateRoot(
                 string description = "",
                 List<IOption>? options = null,
                 List<ICommand>? subcommands = null,
@@ -33,7 +33,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
                 return CreateCommand("", description, options, subcommands, action);
             }
 
-            public static ICommand CreateCommand(
+            public virtual ICommand CreateCommand(
                 string name,
                 string description = "",
                 List<IOption>? options = null,
@@ -50,7 +50,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
                 };
             }
 
-            public static IOption<T> CreateOption<T>(
+            public virtual IOption<T> CreateOption<T>(
                 List<string> names,
                 string? description = null,
                 Func<T>? getDefaultValue = null,
@@ -65,12 +65,12 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
                 return new Option<T>(names, description, allowMultipleValue, valueHelpName);
             }
 
-            public void Bind(ICommand root)
+            public virtual void Bind(ICommand root)
             {
                 _root = BindCommand(root, true);
             }
 
-            public void Invoke(string args)
+            public virtual void Invoke(string args)
             {
                 if (_root is not null)
                 {
@@ -78,7 +78,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
                 }
             }
 
-            public void Invoke(params string[] args)
+            public virtual void Invoke(params string[] args)
             {
                 if (_root is not null)
                 {
@@ -113,5 +113,8 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
                 return cmd;
             }
         }
+
+        public class Parser2 : Parser
+        { }
     }
 }

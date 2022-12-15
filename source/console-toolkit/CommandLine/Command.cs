@@ -25,5 +25,8 @@ namespace Tuvi.Toolkit.Cli.CommandLine
         List<IOption>? Options { get; set; }
         List<ICommand>? Subcommands { get; set; }
         Action<ICommand>? Action { get; set; }
+
+        IOption? FindOption(string name);
+        IOption<T>? FindOption<T>(string name);
     }
 }
