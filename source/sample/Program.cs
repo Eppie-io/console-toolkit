@@ -20,7 +20,6 @@ using Tuvi.Toolkit.Cli.CommandLine;
 
 namespace Tuvi.Toolkit.Cli.Sample
 {
-    using MicrosoftParser = Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine.Parser;
     enum EnumOption
     {
         one,
@@ -61,7 +60,7 @@ namespace Tuvi.Toolkit.Cli.Sample
 
         static IParser Create()
         {
-            var parser = new MicrosoftParser();
+            var parser = Default.Parser();
 
             var root = parser.CreateRoot(
                 description: "Command line application example.",

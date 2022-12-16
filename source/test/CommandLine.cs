@@ -34,7 +34,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
     class ParserTests
     {
         public static uint DefaultUIntValue = 42;
-        private Func<Action<ICommand>, Action<ICommand>, Action<ICommand>, ICommand> Root { get; set; }
+        private Func<Action<ICommand>?, Action<ICommand>?, Action<ICommand>?, Action<ICommand>?, ICommand> Root { get; set; }
         private IParser Parser { get; init; }
 
         public ParserTests(IParser parser)
@@ -45,7 +45,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         [SetUp]
         public void Setup()
         {
-            Root = (rootAction, typeAction, commandAction) =>
+            Root = (rootAction, typeAction, commandAction, requiredAction) =>
             {
                 return Parser.CreateRoot(
                     options: new List<IOption>
@@ -103,6 +103,22 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                         Parser.CreateCommand(
                             name: "command",
                             action: commandAction
+                        ),
+                        Parser.CreateCommand(
+                            name: "command-with-required-option",
+                            options: new List<IOption>
+                            {
+                                Parser.CreateOption<uint>(
+                                    names: new List<string> {"-n", "--not-required", "/NotRequired" },
+                                    valueHelpName: "uint"
+                                ),
+                                Parser.CreateOption<int>(
+                                    names: new List<string> {"-r", "--required", "/Required" },
+                                    isRequired: true,
+                                    valueHelpName: "int"
+                                ),
+                            },
+                            action: requiredAction
                         )
                     },
                     action: rootAction
@@ -117,7 +133,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         [TestCase("""-A"String 'Text'!" --array="String 'Text'!" "String 'Text'!" """, 0, 3, "String 'Text'!")]
         public void TestMultipleValue(string args, int countE, int countA, string value)
         {
-            var rootCommand = Root((cmd) =>
+            var rootCommand = CreateRoot(actionRoot: (cmd) =>
             {
                 var optionE = cmd.FindOption<IEnumerable<string>>("-E");
 
@@ -145,7 +161,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                     });
                 }
 
-            }, (cmd) => { }, (cmd) => { });
+            });
 
             Parser.Bind(rootCommand);
             Parser.Invoke(args);
@@ -155,7 +171,6 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         [TestCase("command", ExpectedResult = true)]
         [TestCase("", ExpectedResult = false)]
         [TestCase("unknown", ExpectedResult = false)]
-        [TestCase("type --int 42", ExpectedResult = false)]
         [TestCase("command -h", ExpectedResult = false)]
         [TestCase("command --help", ExpectedResult = false)]
         [TestCase("command -?", ExpectedResult = false)]
@@ -163,13 +178,29 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         [TestCase("command --u", ExpectedResult = false)]
         [TestCase("command value", ExpectedResult = false)]
         [TestCase("""command "value" """, ExpectedResult = false)]
+        [TestCase("type --int 42", ExpectedResult = true)]
+        [TestCase("type", ExpectedResult = true)]
+        [TestCase("type -i213", ExpectedResult = true)]
+        [TestCase("type --uint -213", ExpectedResult = false)]
+        [TestCase("type --unknown", ExpectedResult = false)]
+        [TestCase("command-with-required-option", ExpectedResult = false)]
+        [TestCase("command-with-required-option -r", ExpectedResult = false)]
+        [TestCase("command-with-required-option -r3245", ExpectedResult = true)]
+        [TestCase("command-with-required-option -n42", ExpectedResult = false)]
+        [TestCase("command-with-required-option --required 1 --not-required 0", ExpectedResult = true)]
+        [TestCase("command-with-required-option /Required 1 /NotRequired -1", ExpectedResult = false)]
+        [TestCase("command-with-required-option /Required 1 /NotRequired 1", ExpectedResult = true)]
+        [TestCase("command-with-required-option -r:-1", ExpectedResult = true)]
         public bool TestCallCommand(string args)
         {
             var isCommandCalled = false;
-            var rootCommand = Root((cmd) => { }, (cmd) => { }, (cmd) =>
+
+            Action<ICommand> action = (cmd) =>
             {
                 isCommandCalled = true;
-            });
+            };
+
+            var rootCommand = CreateRoot(actionCommand: action, actionType: action, actionRequired: action);
 
             Parser.Bind(rootCommand);
             Parser.Invoke(args);
@@ -182,7 +213,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         public void TestOption(string args, bool isCalled, (string, bool, object?)[] options)
         {
             var isCommandCalled = false;
-            var rootCommand = Root((cmd) => { }, (cmd) =>
+            var rootCommand = CreateRoot(actionType: (cmd) =>
             {
                 isCommandCalled = true;
                 foreach ((string name, bool exist, object? value) in options)
@@ -195,7 +226,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                         Assert.That(option.Value, Is.EqualTo(value));
                     }
                 }
-            }, (cmd) => { });
+            });
 
             Parser.Bind(rootCommand);
             Parser.Invoke(args);
@@ -222,7 +253,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
 
             var args = $""" type --bool={@bool} --int={i} --uint={u} --long={l} --float={f} --double={d} --guid="{guid}" """;
 
-            var rootCommand = Root((cmd) => { }, (cmd) =>
+            var rootCommand = CreateRoot(actionType: (cmd) =>
             {
                 var optionBool = cmd.FindOption<bool>("--bool");
                 Assert.That(optionBool?.Value, Is.EqualTo(@bool));
@@ -244,7 +275,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
 
                 var optionGuid = cmd.FindOption<Guid>("--guid");
                 Assert.That(optionGuid?.Value, Is.EqualTo(guid));
-            }, (cmd) => { });
+            });
 
             Parser.Bind(rootCommand);
             Parser.Invoke(args);
@@ -254,6 +285,16 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         {
             return new Guid(a, b, c, BitConverter.GetBytes(d));
         }
+
+        private ICommand CreateRoot(
+            Action<ICommand>? actionRoot = null,
+            Action<ICommand>? actionType = null,
+            Action<ICommand>? actionCommand = null,
+            Action<ICommand>? actionRequired = null
+            )
+        {
+            return Root(actionRoot, actionType, actionCommand, actionRequired);
+        }
     }
 
     public class TestData
@@ -262,7 +303,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         {
             get
             {
-                yield return new TestFixtureData(new Parser.MiscrosoftCommandLine.Parser());
+                yield return new TestFixtureData(Default.MicrosoftParser());
             }
         }
 
