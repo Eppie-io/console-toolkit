@@ -27,20 +27,33 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
 
         internal class Option<T> : System.CommandLine.Option<T>, IOption<T>, IValueUpdater
         {
-            public Option(List<string> names, string? description = null, bool allowMultipleValue = false, string? valueHelpName = null)
+            public Option(
+                List<string> names,
+                string? description = null,
+                bool allowMultipleValue = false,
+                bool isRequired = false,
+                string? valueHelpName = null)
                 : base(aliases: names.ToArray(), description: description)
             {
                 Names = names;
                 ArgumentHelpName = valueHelpName;
                 AllowMultipleArgumentsPerToken = allowMultipleValue;
+                IsRequired = isRequired;
             }
 
-            public Option(List<string> names, Func<T> getDefaultValue, string? description = null, bool allowMultipleValue = false, string? valueHelpName = null)
+            public Option(
+                List<string> names,
+                Func<T> getDefaultValue,
+                string? description = null,
+                bool allowMultipleValue = false,
+                bool isRequired = false,
+                string? valueHelpName = null)
                 : base(aliases: names.ToArray(), getDefaultValue: getDefaultValue, description: description)
             {
                 Names = names;
                 ArgumentHelpName = valueHelpName;
                 AllowMultipleArgumentsPerToken = allowMultipleValue;
+                IsRequired = isRequired;
             }
 
             // interface IOption<T>

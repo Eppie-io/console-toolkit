@@ -40,6 +40,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine
             string? description = null,
             Func<T>? getDefaultValue = null,
             bool allowMultipleValue = false,
+            bool isRequired = false,
             string? valueHelpName = null);
 
         void Invoke(string args);

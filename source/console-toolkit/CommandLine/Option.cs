@@ -24,6 +24,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine
         string? Description { get; set; }
         string? ValueHelpName { get; set; }
         bool AllowMultipleValue { get; set; }
+        bool IsRequired { get; set; }
         object? Value { get; }
     }
 

@@ -20,7 +20,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
 {
     namespace MiscrosoftCommandLine
     {
-        public class Parser : IParser
+        internal class Parser : IParser
         {
             private System.CommandLine.Command? _root;
 
@@ -55,14 +55,15 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser
                 string? description = null,
                 Func<T>? getDefaultValue = null,
                 bool allowMultipleValue = false,
+                bool isRequired = false,
                 string? valueHelpName = null)
             {
                 if (getDefaultValue is not null)
                 {
-                    return new Option<T>(names, getDefaultValue, description, allowMultipleValue, valueHelpName);
+                    return new Option<T>(names, getDefaultValue, description, allowMultipleValue, isRequired, valueHelpName);
                 }
 
-                return new Option<T>(names, description, allowMultipleValue, valueHelpName);
+                return new Option<T>(names, description, allowMultipleValue, isRequired, valueHelpName);
             }
 
             public virtual void Bind(ICommand root)
