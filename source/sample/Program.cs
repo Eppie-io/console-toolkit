@@ -32,7 +32,7 @@ namespace Tuvi.Toolkit.Cli.Sample
     static class Program
     {
         static bool Exit { get; set; } = false;
-        static void Main()
+        static async Task Main()
         {
             try
             {
@@ -47,18 +47,18 @@ namespace Tuvi.Toolkit.Cli.Sample
 
                     if (cmd is not null)
                     {
-                        parser.Invoke(cmd);
+                        await parser.InvokeAsync(cmd);
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ConsoleExtension.WriteLine(ex.ToString(), ConsoleColor.Red);
                 Environment.ExitCode = -1;
             }
         }
 
-        static IParser Create()
+        static IAsyncParser Create()
         {
             var parser = Default.Parser();
 
@@ -141,17 +141,64 @@ namespace Tuvi.Toolkit.Cli.Sample
                                 ConsoleExtension.WriteLine($"{++idx}. [{string.Join(", ", option.Names)}] = {option.Value} (type: {option.Value?.GetType().Name ?? "unknown"})");
                             });
                         }
+                    ),
+                    parser.CreateAsyncCommand(
+                        name: "async",
+                        description: "Async command demo.",
+                        options: new List<IOption>
+                        {
+                            parser.CreateOption<int>(
+                                names: new List<string> {"-t", "--time", "/Time" },
+                                isRequired: true,
+                                description: "Command execution time in seconds."
+                            ),
+                        },
+                        action: async (cmd) =>
+                        {
+                            var timeOption = cmd.FindOption<int>("--time");
+                            if(timeOption?.Value is int value)
+                            {
+                                Console.Write("Process");
+
+                                var cancel = new CancellationTokenSource();
+                                cancel.CancelAfter(value);
+
+                                try
+                                {
+                                    while(!cancel.IsCancellationRequested)
+                                    {
+                                        await Task.Delay(1000, cancel.Token);
+
+                                        if (!cancel.IsCancellationRequested)
+                                        {
+                                            Console.Write(".");
+                                        }
+                                    }
+                                }
+                                catch(OperationCanceledException)
+                                { }
+                                finally
+                                {
+                                    Console.Write(Environment.NewLine);
+                                }
+                            }
+                        }
                     )
                 },
                 action: (cmd) =>
                 {
                     if (cmd.Options?.Count > 0 && cmd.Options[0].Value is IEnumerable<string> items)
                     {
-                        ConsoleExtension.WriteLine("Options:");
+                        ConsoleExtension.WriteLine("Values of options:");
                         var idx = 0;
                         foreach (var item in items)
                         {
                             ConsoleExtension.WriteLine($"{++idx}. {item}");
+                        }
+
+                        if (idx == 0)
+                        {
+                            ConsoleExtension.WriteLine($"<empty>");
                         }
                     }
                 }

@@ -43,7 +43,26 @@ namespace Tuvi.Toolkit.Cli.CommandLine
             bool isRequired = false,
             string? valueHelpName = null);
 
-        void Invoke(string args);
-        void Invoke(params string[] args);
+        int Invoke(string commandLine);
+        int Invoke(params string[] args);
+    }
+
+    public interface IAsyncParser : IParser
+    {
+        IAsyncCommand CreateAsyncRoot(
+            string description = "",
+            List<IOption>? options = null,
+            List<ICommand>? subcommands = null,
+            Func<IAsyncCommand, Task>? action = null);
+
+        IAsyncCommand CreateAsyncCommand(
+            string name,
+            string description = "",
+            List<IOption>? options = null,
+            List<ICommand>? subcommands = null,
+            Func<IAsyncCommand, Task>? action = null);
+
+        Task<int> InvokeAsync(string commandLine);
+        Task<int> InvokeAsync(params string[] args);
     }
 }
