@@ -16,103 +16,100 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace Tuvi.Toolkit.Cli.CommandLine.Parser
+namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
 {
-    namespace MiscrosoftCommandLine
+    internal class Parser : IParser
     {
-        internal class Parser : IParser
+        private System.CommandLine.Command? _root;
+
+        public virtual ICommand CreateRoot(
+            string description = "",
+            List<IOption>? options = null,
+            List<ICommand>? subcommands = null,
+            Action<ICommand>? action = null)
         {
-            private System.CommandLine.Command? _root;
+            return CreateCommand("", description, options, subcommands, action);
+        }
 
-            public virtual ICommand CreateRoot(
-                string description = "",
-                List<IOption>? options = null,
-                List<ICommand>? subcommands = null,
-                Action<ICommand>? action = null)
+        public virtual ICommand CreateCommand(
+            string name,
+            string description = "",
+            List<IOption>? options = null,
+            List<ICommand>? subcommands = null,
+            Action<ICommand>? action = null)
+        {
+            return new Command()
             {
-                return CreateCommand("", description, options, subcommands, action);
+                Name = name,
+                Description = description,
+                Options = options,
+                Subcommands = subcommands,
+                Action = action
+            };
+        }
+
+        public virtual IOption<T> CreateOption<T>(
+            List<string> names,
+            string? description = null,
+            Func<T>? getDefaultValue = null,
+            bool allowMultipleValue = false,
+            bool isRequired = false,
+            string? valueHelpName = null)
+        {
+            if (getDefaultValue is not null)
+            {
+                return new Option<T>(names, getDefaultValue, description, allowMultipleValue, isRequired, valueHelpName);
             }
 
-            public virtual ICommand CreateCommand(
-                string name,
-                string description = "",
-                List<IOption>? options = null,
-                List<ICommand>? subcommands = null,
-                Action<ICommand>? action = null)
+            return new Option<T>(names, description, allowMultipleValue, isRequired, valueHelpName);
+        }
+
+        public virtual void Bind(ICommand root)
+        {
+            _root = BindCommand(root, true);
+        }
+
+        public virtual void Invoke(string args)
+        {
+            if (_root is not null)
             {
-                return new Command()
-                {
-                    Name = name,
-                    Description = description,
-                    Options = options,
-                    Subcommands = subcommands,
-                    Action = action
-                };
+                System.CommandLine.CommandExtensions.Invoke(_root, args);
             }
+        }
 
-            public virtual IOption<T> CreateOption<T>(
-                List<string> names,
-                string? description = null,
-                Func<T>? getDefaultValue = null,
-                bool allowMultipleValue = false,
-                bool isRequired = false,
-                string? valueHelpName = null)
+        public virtual void Invoke(params string[] args)
+        {
+            if (_root is not null)
             {
-                if (getDefaultValue is not null)
-                {
-                    return new Option<T>(names, getDefaultValue, description, allowMultipleValue, isRequired, valueHelpName);
-                }
-
-                return new Option<T>(names, description, allowMultipleValue, isRequired, valueHelpName);
+                System.CommandLine.CommandExtensions.Invoke(_root, args);
             }
+        }
 
-            public virtual void Bind(ICommand root)
+        private void BindCommands(System.CommandLine.Command parent, List<ICommand>? commands)
+        {
+            commands?.ForEach((command) =>
             {
-                _root = BindCommand(root, true);
-            }
+                parent.AddCommand(BindCommand(command, false));
+            });
+        }
 
-            public virtual void Invoke(string args)
+        private System.CommandLine.Command BindCommand(ICommand command, bool isRoot = false)
+        {
+            System.CommandLine.Command cmd = (isRoot)
+                ? new System.CommandLine.RootCommand(command.Description ?? "")
+                : new System.CommandLine.Command(command.Name, command.Description);
+
+            command.Options?.OfType<System.CommandLine.Option>().ToList().ForEach(cmd.AddOption);
+
+            System.CommandLine.Handler.SetHandler(cmd, (context) =>
             {
-                if (_root is not null)
-                {
-                    System.CommandLine.CommandExtensions.Invoke(_root, args);
-                }
-            }
+                command.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
+                command.Action?.Invoke(command);
+            });
 
-            public virtual void Invoke(params string[] args)
-            {
-                if (_root is not null)
-                {
-                    System.CommandLine.CommandExtensions.Invoke(_root, args);
-                }
-            }
+            BindCommands(cmd, command.Subcommands);
 
-            private void BindCommands(System.CommandLine.Command parent, List<ICommand>? commands)
-            {
-                commands?.ForEach((command) =>
-                {
-                    parent.AddCommand(BindCommand(command, false));
-                });
-            }
-
-            private System.CommandLine.Command BindCommand(ICommand command, bool isRoot = false)
-            {
-                System.CommandLine.Command cmd = (isRoot)
-                    ? new System.CommandLine.RootCommand(command.Description ?? "")
-                    : new System.CommandLine.Command(command.Name, command.Description);
-
-                command.Options?.OfType<System.CommandLine.Option>().ToList().ForEach(cmd.AddOption);
-
-                System.CommandLine.Handler.SetHandler(cmd, (context) =>
-                {
-                    command.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
-                    command.Action?.Invoke(command);
-                });
-
-                BindCommands(cmd, command.Subcommands);
-
-                return cmd;
-            }
+            return cmd;
         }
     }
 }

@@ -16,27 +16,24 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace Tuvi.Toolkit.Cli.CommandLine.Parser
+namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
 {
-    namespace MiscrosoftCommandLine
+    internal class Command : ICommand
     {
-        internal class Command : ICommand
+        public required string Name { get; init; }
+        public string? Description { get; set; }
+        public List<IOption>? Options { get; set; }
+        public List<ICommand>? Subcommands { get; set; }
+        public Action<ICommand>? Action { get; set; }
+
+        public IOption? FindOption(string name)
         {
-            public required string Name { get; init; }
-            public string? Description { get; set; }
-            public List<IOption>? Options { get; set; }
-            public List<ICommand>? Subcommands { get; set; }
-            public Action<ICommand>? Action { get; set; }
+            return (from option in Options where option.Names.Contains(name) select option).FirstOrDefault();
+        }
 
-            public IOption? FindOption(string name)
-            {
-                return (from option in Options where option.Names.Contains(name) select option).FirstOrDefault();
-            }
-
-            public IOption<T>? FindOption<T>(string name)
-            {
-                return FindOption(name) as IOption<T>;
-            }
+        public IOption<T>? FindOption<T>(string name)
+        {
+            return FindOption(name) as IOption<T>;
         }
     }
 }
