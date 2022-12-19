@@ -18,7 +18,7 @@
 
 namespace Tuvi.Toolkit.Cli
 {
-    public class ConsoleExtension
+    public static class ConsoleExtension
     {
         private const string BackspaceConst = "\b \b";
         private const string Yes = "y";
@@ -49,6 +49,16 @@ namespace Tuvi.Toolkit.Cli
 
         public static string? ReadValue(string query, Action<string> writer, Func<string?> reader)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (reader is null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
             writer(query);
             return reader();
         }
@@ -60,10 +70,15 @@ namespace Tuvi.Toolkit.Cli
 
         public static bool ReadBool(string query, Action<string> writer)
         {
+            if(writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             writer(query);
             var res = Console.ReadLine() ?? No;
 
-            return res.Length > 0 && string.Compare(Yes, res[0].ToString(), true) == 0;
+            return res.Length > 0 && string.Equals(Yes, res[0].ToString(), StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool ReadBool(string query = "(y/n): ")

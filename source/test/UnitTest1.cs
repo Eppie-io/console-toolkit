@@ -20,7 +20,13 @@ using NUnit.Framework;
 
 namespace Tuvi.Toolkit.Cli.Test
 {
-    class Tests
+
+    // 'Tests' class is instantiated by NUnit Framework
+#pragma warning disable CA1812
+
+    [TestFixture]
+    internal class Tests
+#pragma warning restore CA1812
     {
         [SetUp]
         public void Setup()
@@ -31,7 +37,6 @@ namespace Tuvi.Toolkit.Cli.Test
         public void Test()
         {
             Assert.Pass();
-
         }
     }
 }

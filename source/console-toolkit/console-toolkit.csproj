@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
 
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
-    <AnalysisLevel>latest-all</AnalysisLevel>
+    <AnalysisLevel>6.0-all</AnalysisLevel>
     <AnalysisMode>All</AnalysisMode>
   </PropertyGroup>
 

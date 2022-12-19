@@ -20,9 +20,10 @@ namespace Tuvi.Toolkit.Cli.Sample
 {
     static class Program
     {
+        static string HelloString { get; } = "Hello, Console Toolkit!";
         static void Main()
         {
-            Console.WriteLine("Hello, Console Toolkit!");
+            Console.WriteLine(HelloString);
 
             ConsoleExtension.Write("Enter a password: ", ConsoleColor.Yellow);
             var psw = ConsoleExtension.ReadPassword();
