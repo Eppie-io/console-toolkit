@@ -26,7 +26,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
     internal class Option<T> : System.CommandLine.Option<T>, IOption<T>, IValueUpdater
     {
         public Option(
-            List<string> names,
+            IReadOnlyCollection<string> names,
             string? description = null,
             bool allowMultipleValue = false,
             bool isRequired = false,
@@ -40,7 +40,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
         }
 
         public Option(
-            List<string> names,
+            IReadOnlyCollection<string> names,
             Func<T> getDefaultValue,
             string? description = null,
             bool allowMultipleValue = false,
@@ -55,7 +55,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
         }
 
         // interface IOption<T>
-        public List<string> Names { get; init; }
+        public IReadOnlyCollection<string> Names { get; init; }
         public string? ValueHelpName { get => ArgumentHelpName; set => ArgumentHelpName = value; }
         public bool AllowMultipleValue { get => AllowMultipleArgumentsPerToken; set => AllowMultipleArgumentsPerToken = value; }
         public T? Value { get; private set; }

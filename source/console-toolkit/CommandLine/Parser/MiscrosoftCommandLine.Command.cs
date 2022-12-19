@@ -22,8 +22,8 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
     {
         public required string Name { get; init; }
         public string? Description { get; set; }
-        public List<IOption>? Options { get; set; }
-        public List<ICommand>? Subcommands { get; set; }
+        public IReadOnlyCollection<IOption>? Options { get; set; }
+        public IReadOnlyCollection<ICommand>? Subcommands { get; set; }
         public Action<ICommand>? Action { get; set; }
 
         public IOption? FindOption(string name)

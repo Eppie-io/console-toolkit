@@ -20,9 +20,13 @@ using NUnit.Framework;
 
 namespace Tuvi.Toolkit.Cli.CommandLine.Test
 {
+
+    // 'Tests' class is instantiated by NUnit Framework
+#pragma warning disable CA1812
     [TestFixtureSource(typeof(Data.ParserData), nameof(Data.ParserData.FixtureParams))]
     [DefaultFloatingPointTolerance(1e-5)]
     class ParserTests
+#pragma warning restore CA1812
     {
         public static uint DefaultUIntValue = 42;
         private Func<Action<ICommand>?, Action<ICommand>?, Action<ICommand>?, Action<ICommand>?, ICommand> Root { get; set; }
@@ -272,7 +276,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             Parser.Invoke(args);
         }
 
-        private Guid CreateGuid(int a, short b, short c, long d)
+        private static Guid CreateGuid(int a, short b, short c, long d)
         {
             return new Guid(a, b, c, BitConverter.GetBytes(d));
         }

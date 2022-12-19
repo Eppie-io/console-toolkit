@@ -16,6 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+using System.Collections.ObjectModel;
 using Tuvi.Toolkit.Cli.CommandLine;
 
 namespace Tuvi.Toolkit.Cli.Sample
@@ -29,38 +30,32 @@ namespace Tuvi.Toolkit.Cli.Sample
         unknown
     }
 
-    static class Program
+    public static class Program
     {
-        static bool Exit { get; set; } = false;
-        static void Main()
+        private static bool _exit;
+        private static string Hello { get; } = "Hello, Console Toolkit!";
+
+        public static void Main()
         {
-            try
+            Console.WriteLine(Hello);
+
+            var parser = Create();
+
+            _exit = false;
+            while (!_exit)
             {
-                Console.WriteLine("Hello, Console Toolkit!");
-                Console.WriteLine($"Commandlines: {string.Join(", ", Environment.GetCommandLineArgs())}");
+                var cmd = ReadValue("Command: ", Console.ForegroundColor);
 
-                var parser = Create();
-
-                while (!Exit)
+                if (cmd is not null)
                 {
-                    var cmd = ReadValue("Command: ", Console.ForegroundColor);
-
-                    if (cmd is not null)
-                    {
-                        parser.Invoke(cmd);
-                    }
+                    parser.Invoke(cmd);
                 }
-            }
-            catch(Exception ex)
-            {
-                ConsoleExtension.WriteLine(ex.ToString(), ConsoleColor.Red);
-                Environment.ExitCode = -1;
             }
         }
 
-        static IParser Create()
+        private static IParser Create()
         {
-            var parser = Default.Parser();
+            var parser = DefaultParser.Parser();
 
             var root = parser.CreateRoot(
                 description: "Command line application example.",
@@ -136,7 +131,7 @@ namespace Tuvi.Toolkit.Cli.Sample
                         action: (cmd) =>
                         {
                             var idx = 0;
-                            cmd.Options?.ForEach((option) =>
+                            cmd.Options?.ToList().ForEach((option) =>
                             {
                                 ConsoleExtension.WriteLine($"{++idx}. [{string.Join(", ", option.Names)}] = {option.Value} (type: {option.Value?.GetType().Name ?? "unknown"})");
                             });
@@ -145,7 +140,7 @@ namespace Tuvi.Toolkit.Cli.Sample
                 },
                 action: (cmd) =>
                 {
-                    if (cmd.Options?.Count > 0 && cmd.Options[0].Value is IEnumerable<string> items)
+                    if (cmd.Options?.FirstOrDefault()?.Value is IEnumerable<string> items)
                     {
                         ConsoleExtension.WriteLine("Options:");
                         var idx = 0;
@@ -163,12 +158,12 @@ namespace Tuvi.Toolkit.Cli.Sample
         }
 
 
-        static void ExitCommand()
+        private static void ExitCommand()
         {
-            Program.Exit = true;
+            _exit = true;
         }
 
-        static void ConsoleCommand()
+        private static void ConsoleCommand()
         {
             var psw = ReadPassword("Enter password: ");
 
@@ -182,12 +177,12 @@ namespace Tuvi.Toolkit.Cli.Sample
         }
 
 
-        static string? ReadValue(string query, ConsoleColor foreground = ConsoleColor.Yellow)
+        private static string? ReadValue(string query, ConsoleColor foreground = ConsoleColor.Yellow)
         {
             return ConsoleExtension.ReadValue(query, (message) => ConsoleExtension.Write(message, foreground), Console.ReadLine);
         }
 
-        static string? ReadPassword(string query)
+        private static string? ReadPassword(string query)
         {
             return ConsoleExtension.ReadValue(query, (message) => ConsoleExtension.Write(message, ConsoleColor.Yellow), () => ConsoleExtension.ReadPassword());
         }
