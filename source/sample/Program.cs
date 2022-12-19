@@ -16,7 +16,6 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-using System.Collections.ObjectModel;
 using Tuvi.Toolkit.Cli.CommandLine;
 
 namespace Tuvi.Toolkit.Cli.Sample
@@ -30,19 +29,18 @@ namespace Tuvi.Toolkit.Cli.Sample
         unknown
     }
 
-    public static class Program
+    internal class Program
     {
-        private static bool _exit;
+        private static bool Exit { get; set; }
         private static string Hello { get; } = "Hello, Console Toolkit!";
 
-        public static void Main()
+        private static void Main()
         {
             Console.WriteLine(Hello);
 
             var parser = Create();
 
-            _exit = false;
-            while (!_exit)
+            while (!Exit)
             {
                 var cmd = ReadValue("Command: ", Console.ForegroundColor);
 
@@ -55,7 +53,7 @@ namespace Tuvi.Toolkit.Cli.Sample
 
         private static IParser Create()
         {
-            var parser = DefaultParser.Parser();
+            var parser = BaseParser.Default();
 
             var root = parser.CreateRoot(
                 description: "Command line application example.",
@@ -160,7 +158,7 @@ namespace Tuvi.Toolkit.Cli.Sample
 
         private static void ExitCommand()
         {
-            _exit = true;
+            Exit = true;
         }
 
         private static void ConsoleCommand()

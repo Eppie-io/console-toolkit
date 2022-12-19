@@ -17,7 +17,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test.Data
         {
             get
             {
-                yield return new TestFixtureData(DefaultParser.MicrosoftParser());
+                yield return new TestFixtureData(BaseParser.MicrosoftParser());
             }
         }
 

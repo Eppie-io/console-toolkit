@@ -16,8 +16,6 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-using System.Collections;
-
 namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
 {
     internal class Parser : IParser
@@ -89,7 +87,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
 
         private static void BindCommands(System.CommandLine.Command parent, IReadOnlyCollection<ICommand>? commands)
         {
-            foreach(var command in commands ?? Enumerable.Empty<ICommand>())
+            foreach (var command in commands ?? Enumerable.Empty<ICommand>())
             {
                 parent.AddCommand(BindCommand(command, false));
             }

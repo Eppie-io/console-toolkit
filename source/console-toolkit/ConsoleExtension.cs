@@ -70,7 +70,7 @@ namespace Tuvi.Toolkit.Cli
 
         public static bool ReadBool(string query, Action<string> writer)
         {
-            if(writer is null)
+            if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }

@@ -147,7 +147,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
 
                 if (countA > 0)
                 {
-                    Assert.NotNull(optionA?.Value);
+                    Assert.That(optionA?.Value, Is.Not.Null);
                     Assert.That(optionA?.Value?.Length, Is.EqualTo(countA));
 
                     optionA?.Value?.ToList().ForEach((valueA) =>
