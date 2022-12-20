@@ -24,8 +24,8 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
 
         public virtual ICommand CreateRoot(
             string description = "",
-            List<IOption>? options = null,
-            List<ICommand>? subcommands = null,
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
             Action<ICommand>? action = null)
         {
             return CreateCommand("", description, options, subcommands, action);
@@ -34,8 +34,8 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
         public virtual ICommand CreateCommand(
             string name,
             string description = "",
-            List<IOption>? options = null,
-            List<ICommand>? subcommands = null,
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
             Action<ICommand>? action = null)
         {
             return new Command()
@@ -49,7 +49,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
         }
 
         public virtual IOption<T> CreateOption<T>(
-            List<string> names,
+            IReadOnlyCollection<string> names,
             string? description = null,
             Func<T>? getDefaultValue = null,
             bool allowMultipleValue = false,
@@ -85,15 +85,15 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
             }
         }
 
-        private void BindCommands(System.CommandLine.Command parent, List<ICommand>? commands)
+        private static void BindCommands(System.CommandLine.Command parent, IReadOnlyCollection<ICommand>? commands)
         {
-            commands?.ForEach((command) =>
+            foreach (var command in commands ?? Enumerable.Empty<ICommand>())
             {
                 parent.AddCommand(BindCommand(command, false));
-            });
+            }
         }
 
-        private System.CommandLine.Command BindCommand(ICommand command, bool isRoot = false)
+        private static System.CommandLine.Command BindCommand(ICommand command, bool isRoot = false)
         {
             System.CommandLine.Command cmd = (isRoot)
                 ? new System.CommandLine.RootCommand(command.Description ?? "")

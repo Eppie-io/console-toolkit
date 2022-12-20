@@ -24,19 +24,19 @@ namespace Tuvi.Toolkit.Cli.CommandLine
 
         ICommand CreateRoot(
             string description = "",
-            List<IOption>? options = null,
-            List<ICommand>? subcommands = null,
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
             Action<ICommand>? action = null);
 
         ICommand CreateCommand(
             string name,
             string description = "",
-            List<IOption>? options = null,
-            List<ICommand>? subcommands = null,
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
             Action<ICommand>? action = null);
 
         IOption<T> CreateOption<T>(
-            List<string> names,
+            IReadOnlyCollection<string> names,
             string? description = null,
             Func<T>? getDefaultValue = null,
             bool allowMultipleValue = false,
