@@ -26,6 +26,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
     {
         public static uint DefaultUIntValue = 42;
         private Func<Action<ICommand>?, Action<ICommand>?, Action<ICommand>?, Action<ICommand>?, ICommand> Root { get; set; }
+        private Func<Action<ICommand>?, Func<IAsyncCommand, Task>?, ICommand>? AsyncRoot { get; set; }
         private IParser Parser { get; init; }
 
         public ParserTests(IParser parser)
@@ -110,11 +111,53 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                                 ),
                             },
                             action: requiredAction
-                        )
+                        ),
                     },
                     action: rootAction
                 );
             };
+
+
+            if (Parser is IAsyncParser asyncParser)
+            {
+                AsyncRoot = (commandAction, asyncCommandAction) =>
+                {
+                    return asyncParser.CreateRoot(
+                    subcommands: new List<ICommand>
+                        {
+                            asyncParser.CreateCommand(
+                                name: "sync-command",
+                                action: commandAction
+                            ),
+                            asyncParser.CreateAsyncCommand(
+                                name: "async-command",
+                                options: new List<IOption>
+                                {
+                                    asyncParser.CreateOption<int>(
+                                        names: new List<string> {"-d", "--delay-time", "/DelayTime" },
+                                        isRequired: true
+                                    ),
+                                    asyncParser.CreateOption<int>(
+                                        names: new List<string> {"-p", "--process-time", "/ProcessTime" }
+                                    ),
+                                    asyncParser.CreateOption<object>(
+                                        names: new List<string> {"-o", "--param", "/Param" }
+                                    )
+                                },
+                                action: async (cmd) => {
+                                    var delayTime = cmd.FindOption<int>("--delay-time")?.Value ?? 0;
+                                    await Task.Delay(delayTime).ConfigureAwait(false);
+
+                                    if(asyncCommandAction is not null)
+                                    {
+                                        await asyncCommandAction(cmd).ConfigureAwait(false);
+                                    }
+                                }
+                            ),
+                        }
+                    );
+                };
+            }
         }
 
         [Test(Description = "Checking multiple values")]
@@ -143,7 +186,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
 
                 if (countA > 0)
                 {
-                    Assert.NotNull(optionA?.Value);
+                    Assert.That(optionA?.Value, Is.Not.Null);
                     Assert.That(optionA?.Value?.Length, Is.EqualTo(countA));
 
                     optionA?.Value?.ToList().ForEach((valueA) =>
@@ -272,7 +315,63 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             Parser.Invoke(args);
         }
 
-        private Guid CreateGuid(int a, short b, short c, long d)
+
+        [Test]
+        [TestCase("sync-command", true, 0, 500)]
+        [TestCase("async-command -d2000 -p1000", false, 2500, 3500)]
+        [TestCase("async-command -d2000", false, 1500, 2500)]
+        public async Task TestCallAsyncCommandAsync(string args, bool isSameThread, long min, long max)
+        {
+            var threadId = Environment.CurrentManagedThreadId;
+            var commandThreadId = Environment.CurrentManagedThreadId;
+
+            var command = CreateAsyncRoot(
+                actionCommand: (cmd) =>
+                {
+                    commandThreadId = Environment.CurrentManagedThreadId;
+                },
+                actionAsyncCommand: async (cmd) =>
+                {
+                    var processTime = cmd.FindOption<int>("--process-time")?.Value ?? 0;
+                    var token = new CancellationTokenSource(processTime).Token;
+
+                    try
+                    {
+                        await Task.Run(() =>
+                        {
+                            while (true)
+                            {
+                                Thread.Sleep(100);
+                                token.ThrowIfCancellationRequested();
+                            }
+                        }, token).ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException)
+                    { }
+                    catch (OperationCanceledException)
+                    { }
+
+                    commandThreadId = Environment.CurrentManagedThreadId;
+                });
+
+            if (Parser is IAsyncParser asyncParser && command is not null)
+            {
+                asyncParser.Bind(command);
+
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+                await asyncParser.InvokeAsync(args).ConfigureAwait(false);
+
+                stopwatch.Stop();
+                Assert.Multiple(() =>
+                {
+                    Assert.That(commandThreadId.Equals(threadId), Is.EqualTo(isSameThread));
+                    Assert.That(stopwatch.ElapsedMilliseconds, Is.InRange(min, max));
+                });
+            }
+        }
+
+        private static Guid CreateGuid(int a, short b, short c, long d)
         {
             return new Guid(a, b, c, BitConverter.GetBytes(d));
         }
@@ -281,10 +380,16 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             Action<ICommand>? actionRoot = null,
             Action<ICommand>? actionType = null,
             Action<ICommand>? actionCommand = null,
-            Action<ICommand>? actionRequired = null
-            )
+            Action<ICommand>? actionRequired = null)
         {
             return Root(actionRoot, actionType, actionCommand, actionRequired);
+        }
+
+        private ICommand? CreateAsyncRoot(
+            Action<ICommand>? actionCommand = null,
+            Func<IAsyncCommand, Task>? actionAsyncCommand = null)
+        {
+            return AsyncRoot?.Invoke(actionCommand, actionAsyncCommand);
         }
     }
 }
