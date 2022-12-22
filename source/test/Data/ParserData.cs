@@ -17,7 +17,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test.Data
         {
             get
             {
-                yield return new TestFixtureData(Default.MicrosoftParser());
+                yield return new TestFixtureData(BaseParser.MicrosoftParser());
             }
         }
 
@@ -25,13 +25,13 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test.Data
         {
             get
             {
-                yield return new TestCaseData($"type --uint {int.MinValue}", false, new (string, bool, object?)[] { });
-                yield return new TestCaseData($"type --int {long.MinValue}", false, new (string, bool, object?)[] { });
+                yield return new TestCaseData($"type --uint {int.MinValue}", false, Array.Empty<(string, bool, object?)>());
+                yield return new TestCaseData($"type --int {long.MinValue}", false, Array.Empty<(string, bool, object?)>());
 
-                yield return new TestCaseData($"type --enum {nameof(ConsoleColor.Green)}", false, new (string, bool, object?)[] { });
+                yield return new TestCaseData($"type --enum {nameof(ConsoleColor.Green)}", false, Array.Empty<(string, bool, object?)>());
                 yield return new TestCaseData($"type --enum {nameof(TestEnum.Red)}", true, new (string, bool, object?)[] { ("-e", true, TestEnum.Red) });
 
-                yield return new TestCaseData($"""type --str "{StringWithDoubleQuoteMark}" """, false, new (string, bool, object?)[] { });
+                yield return new TestCaseData($"""type --str "{StringWithDoubleQuoteMark}" """, false, Array.Empty<(string, bool, object?)>());
                 yield return new TestCaseData($"""type --str "{StringWithSpace}" """, true, new (string, bool, object?)[] { ("/String", true, StringWithSpace) });
                 yield return new TestCaseData($"type /String {StringWithoutSpace}", true, new (string, bool, object?)[] { ("-s", true, StringWithoutSpace) });
 
@@ -65,13 +65,13 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test.Data
             }
         }
 
-        private static DateTime Date = new DateTime(2022, 12, 12, 11, 11, 11);
-        private static DateTime Today = DateTime.Today;
-        private static Guid EmptyGuid = Guid.Empty;
-        private static Guid NewGuid = TestContext.CurrentContext.Random.NextGuid();
+        private static readonly DateTime Date = new(2022, 12, 12, 11, 11, 11);
+        private static readonly DateTime Today = DateTime.Today;
+        private static readonly Guid EmptyGuid = Guid.Empty;
+        private static readonly Guid NewGuid = TestContext.CurrentContext.Random.NextGuid();
 
-        private static string StringWithSpace = "This is text with space";
-        private static string StringWithoutSpace = "Thisisoneword";
-        private static string StringWithDoubleQuoteMark = """string \"with double quote\" doesn't work""";
+        private static string StringWithSpace { get; } = "This is text with space";
+        private static string StringWithoutSpace { get; } = "Thisisoneword";
+        private static string StringWithDoubleQuoteMark { get; } = """string \"with double quote\" doesn't work""";
     }
 }
