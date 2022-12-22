@@ -24,7 +24,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine
 
         public static IAsyncParser MicrosoftParser()
         {
-            return new Parser.MiscrosoftCommandLine.Parser();
+            return new Parser.MicrosoftCommandLine.Parser();
         }
     }
 }
