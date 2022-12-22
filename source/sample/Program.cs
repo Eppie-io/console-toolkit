@@ -143,7 +143,7 @@ namespace Tuvi.Toolkit.Cli.Sample
                             parser.CreateOption<int>(
                                 names: new List<string> {"-t", "--time", "/Time" },
                                 isRequired: true,
-                                description: "Command execution time in seconds."
+                                description: "Command execution time in milliseconds."
                             ),
                         },
                         action: async (cmd) =>

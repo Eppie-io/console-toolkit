@@ -363,11 +363,14 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
 
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-                await asyncParser.InvokeAsync(args).ConfigureAwait(false);
+                var task = asyncParser.InvokeAsync(args);
+
+                await task.ConfigureAwait(false);
 
                 stopwatch.Stop();
                 Assert.Multiple(() =>
                 {
+                    Assert.That(task.IsCompletedSuccessfully, Is.True);
                     Assert.That(commandThreadId.Equals(threadId), Is.EqualTo(isSameThread));
                     Assert.That(stopwatch.ElapsedMilliseconds, Is.InRange(min, max));
                 });
