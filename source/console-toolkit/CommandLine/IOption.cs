@@ -20,11 +20,11 @@ namespace Tuvi.Toolkit.Cli.CommandLine
 {
     public interface IOption
     {
-        List<string> Names { get; init; }
-        string? Description { get; set; }
-        string? ValueHelpName { get; set; }
-        bool AllowMultipleValue { get; set; }
-        bool IsRequired { get; set; }
+        IReadOnlyCollection<string> Names { get; }
+        string? Description { get; }
+        string? ValueHelpName { get; }
+        bool AllowMultipleValue { get; }
+        bool IsRequired { get; }
         object? Value { get; }
     }
 

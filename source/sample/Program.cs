@@ -29,38 +29,31 @@ namespace Tuvi.Toolkit.Cli.Sample
         unknown
     }
 
-    static class Program
+    internal static class Program
     {
-        static bool Exit { get; set; } = false;
-        static async Task Main()
+        private static bool Exit { get; set; }
+        private static string Hello { get; } = "Hello, Console Toolkit!";
+
+        private static async Task Main()
         {
-            try
+            Console.WriteLine(Hello);
+
+            var parser = Create();
+
+            while (!Exit)
             {
-                Console.WriteLine("Hello, Console Toolkit!");
-                Console.WriteLine($"Commandlines: {string.Join(", ", Environment.GetCommandLineArgs())}");
+                var cmd = ReadValue("Command: ", Console.ForegroundColor);
 
-                var parser = Create();
-
-                while (!Exit)
+                if (cmd is not null)
                 {
-                    var cmd = ReadValue("Command: ", Console.ForegroundColor);
-
-                    if (cmd is not null)
-                    {
-                        await parser.InvokeAsync(cmd);
-                    }
+                    await parser.InvokeAsync(cmd).ConfigureAwait(false);
                 }
-            }
-            catch (Exception ex)
-            {
-                ConsoleExtension.WriteLine(ex.ToString(), ConsoleColor.Red);
-                Environment.ExitCode = -1;
             }
         }
 
         static IAsyncParser Create()
         {
-            var parser = Default.Parser();
+            var parser = BaseParser.Default();
 
             var root = parser.CreateRoot(
                 description: "Command line application example.",
@@ -136,7 +129,7 @@ namespace Tuvi.Toolkit.Cli.Sample
                         action: (cmd) =>
                         {
                             var idx = 0;
-                            cmd.Options?.ForEach((option) =>
+                            cmd.Options?.ToList().ForEach((option) =>
                             {
                                 ConsoleExtension.WriteLine($"{++idx}. [{string.Join(", ", option.Names)}] = {option.Value} (type: {option.Value?.GetType().Name ?? "unknown"})");
                             });
@@ -167,7 +160,7 @@ namespace Tuvi.Toolkit.Cli.Sample
                                 {
                                     while(!cancel.IsCancellationRequested)
                                     {
-                                        await Task.Delay(1000, cancel.Token);
+                                        await Task.Delay(1000, cancel.Token).ConfigureAwait(false);
 
                                         if (!cancel.IsCancellationRequested)
                                         {
@@ -187,9 +180,9 @@ namespace Tuvi.Toolkit.Cli.Sample
                 },
                 action: (cmd) =>
                 {
-                    if (cmd.Options?.Count > 0 && cmd.Options[0].Value is IEnumerable<string> items)
+                    if (cmd.Options?.FirstOrDefault()?.Value is IEnumerable<string> items)
                     {
-                        ConsoleExtension.WriteLine("Values of options:");
+                        ConsoleExtension.WriteLine("Options:");
                         var idx = 0;
                         foreach (var item in items)
                         {
@@ -210,12 +203,12 @@ namespace Tuvi.Toolkit.Cli.Sample
         }
 
 
-        static void ExitCommand()
+        private static void ExitCommand()
         {
-            Program.Exit = true;
+            Exit = true;
         }
 
-        static void ConsoleCommand()
+        private static void ConsoleCommand()
         {
             var psw = ReadPassword("Enter password: ");
 
@@ -229,12 +222,12 @@ namespace Tuvi.Toolkit.Cli.Sample
         }
 
 
-        static string? ReadValue(string query, ConsoleColor foreground = ConsoleColor.Yellow)
+        private static string? ReadValue(string query, ConsoleColor foreground = ConsoleColor.Yellow)
         {
             return ConsoleExtension.ReadValue(query, (message) => ConsoleExtension.Write(message, foreground), Console.ReadLine);
         }
 
-        static string? ReadPassword(string query)
+        private static string? ReadPassword(string query)
         {
             return ConsoleExtension.ReadValue(query, (message) => ConsoleExtension.Write(message, ConsoleColor.Yellow), () => ConsoleExtension.ReadPassword());
         }

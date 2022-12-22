@@ -16,168 +16,165 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace Tuvi.Toolkit.Cli.CommandLine.Parser
+namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
 {
-    namespace MiscrosoftCommandLine
+    internal class Parser : IParser, IAsyncParser
     {
-        internal class Parser : IParser, IAsyncParser
+        private System.CommandLine.Command? _root;
+
+        public virtual ICommand CreateRoot(
+            string description = "",
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
+            Action<ICommand>? action = null)
         {
-            private System.CommandLine.Command? _root;
+            return CreateCommand("", description, options, subcommands, action);
+        }
 
-            public virtual ICommand CreateRoot(
-                string description = "",
-                List<IOption>? options = null,
-                List<ICommand>? subcommands = null,
-                Action<ICommand>? action = null)
+        public virtual ICommand CreateCommand(
+            string name,
+            string description = "",
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
+            Action<ICommand>? action = null)
+        {
+            return new Command()
             {
-                return CreateCommand("", description, options, subcommands, action);
+                Name = name,
+                Description = description,
+                Options = options,
+                Subcommands = subcommands,
+                Action = action
+            };
+        }
+
+        public IAsyncCommand CreateAsyncRoot(
+            string description = "",
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
+            Func<IAsyncCommand, Task>? action = null)
+        {
+            return CreateAsyncCommand("", description, options, subcommands, action);
+        }
+
+        public IAsyncCommand CreateAsyncCommand(
+            string name,
+            string description = "",
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
+            Func<IAsyncCommand, Task>? action = null)
+        {
+            return new AsyncCommand()
+            {
+                Name = name,
+                Description = description,
+                Options = options,
+                Subcommands = subcommands,
+                AsyncAction = action
+            };
+        }
+
+        public virtual IOption<T> CreateOption<T>(
+            IReadOnlyCollection<string> names,
+            string? description = null,
+            Func<T>? getDefaultValue = null,
+            bool allowMultipleValue = false,
+            bool isRequired = false,
+            string? valueHelpName = null)
+        {
+            if (getDefaultValue is not null)
+            {
+                return new Option<T>(names, getDefaultValue, description, allowMultipleValue, isRequired, valueHelpName);
             }
 
-            public virtual ICommand CreateCommand(
-                string name,
-                string description = "",
-                List<IOption>? options = null,
-                List<ICommand>? subcommands = null,
-                Action<ICommand>? action = null)
+            return new Option<T>(names, description, allowMultipleValue, isRequired, valueHelpName);
+        }
+
+        public virtual void Bind(ICommand root)
+        {
+            _root = BindCommand(root, true);
+        }
+
+        public virtual int Invoke(string commandLine)
+        {
+            if (_root is null)
             {
-                return new Command()
+                throw new InvalidOperationException("Root command not defined");
+            }
+
+            return System.CommandLine.CommandExtensions.Invoke(_root, commandLine);
+        }
+
+        public virtual int Invoke(params string[] args)
+        {
+            if (_root is null)
+            {
+                throw new InvalidOperationException("Root command not defined");
+            }
+
+            return System.CommandLine.CommandExtensions.Invoke(_root, args);
+        }
+
+        public virtual Task<int> InvokeAsync(string commandLine)
+        {
+            if (_root is null)
+            {
+                throw new InvalidOperationException("Root command not defined");
+            }
+
+            return System.CommandLine.CommandExtensions.InvokeAsync(_root, commandLine);
+        }
+
+        public virtual Task<int> InvokeAsync(params string[] args)
+        {
+            if (_root is null)
+            {
+                throw new InvalidOperationException("Root command not defined");
+            }
+
+            return System.CommandLine.CommandExtensions.InvokeAsync(_root, args);
+        }
+
+        private static void BindCommands(System.CommandLine.Command parent, IReadOnlyCollection<ICommand>? commands)
+        {
+            foreach (var command in commands ?? Enumerable.Empty<ICommand>())
+            {
+                parent.AddCommand(BindCommand(command, false));
+            }
+        }
+
+        private static System.CommandLine.Command BindCommand(ICommand command, bool isRoot = false)
+        {
+            System.CommandLine.Command cmd = (isRoot)
+                ? new System.CommandLine.RootCommand(command.Description ?? "")
+                : new System.CommandLine.Command(command.Name, command.Description);
+
+            command.Options?.OfType<System.CommandLine.Option>().ToList().ForEach(cmd.AddOption);
+
+            if (command is IAsyncCommand asyncCommand)
+            {
+                System.CommandLine.Handler.SetHandler(cmd, async (context) =>
                 {
-                    Name = name,
-                    Description = description,
-                    Options = options,
-                    Subcommands = subcommands,
-                    Action = action
-                };
-            }
+                    asyncCommand.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
 
-            public IAsyncCommand CreateAsyncRoot(
-                string description = "",
-                List<IOption>? options = null,
-                List<ICommand>? subcommands = null,
-                Func<IAsyncCommand, Task>? action = null)
-            {
-                return CreateAsyncCommand("", description, options, subcommands, action);
+                    if (asyncCommand.AsyncAction is not null)
+                    {
+                        await asyncCommand.AsyncAction.Invoke(asyncCommand).ConfigureAwait(false);
+                    }
+                });
             }
-
-            public IAsyncCommand CreateAsyncCommand(
-                string name,
-                string description = "",
-                List<IOption>? options = null,
-                List<ICommand>? subcommands = null,
-                Func<IAsyncCommand, Task>? action = null)
+            else
             {
-                return new AsyncCommand()
+                System.CommandLine.Handler.SetHandler(cmd, (context) =>
                 {
-                    Name = name,
-                    Description = description,
-                    Options = options,
-                    Subcommands = subcommands,
-                    AsyncAction = action
-                };
-            }
-
-            public virtual IOption<T> CreateOption<T>(
-                List<string> names,
-                string? description = null,
-                Func<T>? getDefaultValue = null,
-                bool allowMultipleValue = false,
-                bool isRequired = false,
-                string? valueHelpName = null)
-            {
-                if (getDefaultValue is not null)
-                {
-                    return new Option<T>(names, getDefaultValue, description, allowMultipleValue, isRequired, valueHelpName);
-                }
-
-                return new Option<T>(names, description, allowMultipleValue, isRequired, valueHelpName);
-            }
-
-            public virtual void Bind(ICommand root)
-            {
-                _root = BindCommand(root, true);
-            }
-
-            public virtual int Invoke(string commandLine)
-            {
-                if (_root is null)
-                {
-                    throw new InvalidOperationException("Root command not defined");
-                }
-
-                return System.CommandLine.CommandExtensions.Invoke(_root, commandLine);
-            }
-
-            public virtual int Invoke(params string[] args)
-            {
-                if (_root is null)
-                {
-                    throw new InvalidOperationException("Root command not defined");
-                }
-
-                return System.CommandLine.CommandExtensions.Invoke(_root, args);
-            }
-
-            public virtual Task<int> InvokeAsync(string commandLine)
-            {
-                if (_root is null)
-                {
-                    throw new InvalidOperationException("Root command not defined");
-                }
-
-                return System.CommandLine.CommandExtensions.InvokeAsync(_root, commandLine);
-            }
-
-            public virtual Task<int> InvokeAsync(params string[] args)
-            {
-                if (_root is null)
-                {
-                    throw new InvalidOperationException("Root command not defined");
-                }
-
-                return System.CommandLine.CommandExtensions.InvokeAsync(_root, args);
-            }
-
-            private void BindCommands(System.CommandLine.Command parent, List<ICommand>? commands)
-            {
-                commands?.ForEach((command) =>
-                {
-                    parent.AddCommand(BindCommand(command, false));
+                    command.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
+                    command.Action?.Invoke(command);
                 });
             }
 
-            private System.CommandLine.Command BindCommand(ICommand command, bool isRoot = false)
-            {
-                System.CommandLine.Command cmd = (isRoot)
-                    ? new System.CommandLine.RootCommand(command.Description ?? "")
-                    : new System.CommandLine.Command(command.Name, command.Description);
+            BindCommands(cmd, command.Subcommands);
 
-                command.Options?.OfType<System.CommandLine.Option>().ToList().ForEach(cmd.AddOption);
-
-                if (command is IAsyncCommand asyncCommand)
-                {
-                    System.CommandLine.Handler.SetHandler(cmd, async (context) =>
-                    {
-                        asyncCommand.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
-
-                        if (asyncCommand.AsyncAction is not null)
-                        {
-                            await asyncCommand.AsyncAction.Invoke(asyncCommand);
-                        }
-                    });
-                }
-                else
-                {
-                    System.CommandLine.Handler.SetHandler(cmd, (context) =>
-                    {
-                        command.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
-                        command.Action?.Invoke(command);
-                    });
-                }
-
-                BindCommands(cmd, command.Subcommands);
-
-                return cmd;
-            }
+            return cmd;
         }
     }
 }

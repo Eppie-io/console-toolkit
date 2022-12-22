@@ -22,15 +22,16 @@ namespace Tuvi.Toolkit.Cli.CommandLine
     {
         string Name { get; }
         string? Description { get; }
-        List<IOption>? Options { get; set; }
-        List<ICommand>? Subcommands { get; set; }
-        Action<ICommand>? Action { get; set; }
+        IReadOnlyCollection<IOption>? Options { get; }
+        IReadOnlyCollection<ICommand>? Subcommands { get; }
+        Action<ICommand>? Action { get; }
+
         IOption? FindOption(string name);
         IOption<T>? FindOption<T>(string name);
     }
 
     public interface IAsyncCommand : ICommand
     {
-        Func<IAsyncCommand, Task>? AsyncAction { get; set; }
+        Func<IAsyncCommand, Task>? AsyncAction { get; }
     }
 }
