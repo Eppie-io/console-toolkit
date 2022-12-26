@@ -29,12 +29,12 @@ namespace Tuvi.Toolkit.Cli.Sample
         unknown
     }
 
-    internal class Program
+    internal static class Program
     {
         private static bool Exit { get; set; }
         private static string Hello { get; } = "Hello, Console Toolkit!";
 
-        private static void Main()
+        private static async Task Main()
         {
             Console.WriteLine(Hello);
 
@@ -46,12 +46,12 @@ namespace Tuvi.Toolkit.Cli.Sample
 
                 if (cmd is not null)
                 {
-                    parser.Invoke(cmd);
+                    await parser.InvokeAsync(cmd).ConfigureAwait(false);
                 }
             }
         }
 
-        private static IParser Create()
+        static IAsyncParser Create()
         {
             var parser = BaseParser.Default();
 
@@ -134,6 +134,48 @@ namespace Tuvi.Toolkit.Cli.Sample
                                 ConsoleExtension.WriteLine($"{++idx}. [{string.Join(", ", option.Names)}] = {option.Value} (type: {option.Value?.GetType().Name ?? "unknown"})");
                             });
                         }
+                    ),
+                    parser.CreateAsyncCommand(
+                        name: "async",
+                        description: "Async command demo.",
+                        options: new List<IOption>
+                        {
+                            parser.CreateOption<int>(
+                                names: new List<string> {"-t", "--time", "/Time" },
+                                isRequired: true,
+                                description: "Command execution time in milliseconds."
+                            ),
+                        },
+                        action: async (cmd) =>
+                        {
+                            var timeOption = cmd.FindOption<int>("--time");
+                            if(timeOption?.Value is int value)
+                            {
+                                Console.Write("Process");
+
+                                var cancel = new CancellationTokenSource();
+                                cancel.CancelAfter(value);
+
+                                try
+                                {
+                                    while(!cancel.IsCancellationRequested)
+                                    {
+                                        await Task.Delay(1000, cancel.Token).ConfigureAwait(false);
+
+                                        if (!cancel.IsCancellationRequested)
+                                        {
+                                            Console.Write(".");
+                                        }
+                                    }
+                                }
+                                catch(OperationCanceledException)
+                                { }
+                                finally
+                                {
+                                    Console.Write(Environment.NewLine);
+                                }
+                            }
+                        }
                     )
                 },
                 action: (cmd) =>
@@ -145,6 +187,11 @@ namespace Tuvi.Toolkit.Cli.Sample
                         foreach (var item in items)
                         {
                             ConsoleExtension.WriteLine($"{++idx}. {item}");
+                        }
+
+                        if (idx == 0)
+                        {
+                            ConsoleExtension.WriteLine($"<empty>");
                         }
                     }
                 }

@@ -29,4 +29,9 @@ namespace Tuvi.Toolkit.Cli.CommandLine
         IOption? FindOption(string name);
         IOption<T>? FindOption<T>(string name);
     }
+
+    public interface IAsyncCommand : ICommand
+    {
+        Func<IAsyncCommand, Task>? AsyncAction { get; }
+    }
 }

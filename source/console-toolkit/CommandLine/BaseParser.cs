@@ -20,11 +20,11 @@ namespace Tuvi.Toolkit.Cli.CommandLine
 {
     public static class BaseParser
     {
-        public static IParser Default() => MicrosoftParser();
+        public static IAsyncParser Default() => MicrosoftParser();
 
-        public static IParser MicrosoftParser()
+        public static IAsyncParser MicrosoftParser()
         {
-            return new Parser.MiscrosoftCommandLine.Parser();
+            return new Parser.MicrosoftCommandLine.Parser();
         }
     }
 }

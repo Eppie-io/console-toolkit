@@ -16,7 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
+namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 {
     internal class Command : ICommand
     {
@@ -35,5 +35,10 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
         {
             return FindOption(name) as IOption<T>;
         }
+    }
+
+    internal class AsyncCommand : Command, ICommand, IAsyncCommand
+    {
+        public Func<IAsyncCommand, Task>? AsyncAction { get; set; }
     }
 }

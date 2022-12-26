@@ -16,7 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
+namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 {
     internal interface IValueUpdater
     {

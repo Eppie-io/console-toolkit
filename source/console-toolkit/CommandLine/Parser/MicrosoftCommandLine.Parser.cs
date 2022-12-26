@@ -16,9 +16,9 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
+namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 {
-    internal class Parser : IParser
+    internal class Parser : IParser, IAsyncParser
     {
         private System.CommandLine.Command? _root;
 
@@ -48,6 +48,32 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
             };
         }
 
+        public IAsyncCommand CreateAsyncRoot(
+            string description = "",
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
+            Func<IAsyncCommand, Task>? action = null)
+        {
+            return CreateAsyncCommand("", description, options, subcommands, action);
+        }
+
+        public IAsyncCommand CreateAsyncCommand(
+            string name,
+            string description = "",
+            IReadOnlyCollection<IOption>? options = null,
+            IReadOnlyCollection<ICommand>? subcommands = null,
+            Func<IAsyncCommand, Task>? action = null)
+        {
+            return new AsyncCommand()
+            {
+                Name = name,
+                Description = description,
+                Options = options,
+                Subcommands = subcommands,
+                AsyncAction = action
+            };
+        }
+
         public virtual IOption<T> CreateOption<T>(
             IReadOnlyCollection<string> names,
             string? description = null,
@@ -69,20 +95,44 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
             _root = BindCommand(root, true);
         }
 
-        public virtual void Invoke(string args)
+        public virtual int Invoke(string commandLine)
         {
-            if (_root is not null)
+            if (_root is null)
             {
-                System.CommandLine.CommandExtensions.Invoke(_root, args);
+                throw new InvalidOperationException("Root command not defined");
             }
+
+            return System.CommandLine.CommandExtensions.Invoke(_root, commandLine);
         }
 
-        public virtual void Invoke(params string[] args)
+        public virtual int Invoke(params string[] args)
         {
-            if (_root is not null)
+            if (_root is null)
             {
-                System.CommandLine.CommandExtensions.Invoke(_root, args);
+                throw new InvalidOperationException("Root command not defined");
             }
+
+            return System.CommandLine.CommandExtensions.Invoke(_root, args);
+        }
+
+        public virtual Task<int> InvokeAsync(string commandLine)
+        {
+            if (_root is null)
+            {
+                throw new InvalidOperationException("Root command not defined");
+            }
+
+            return System.CommandLine.CommandExtensions.InvokeAsync(_root, commandLine);
+        }
+
+        public virtual Task<int> InvokeAsync(params string[] args)
+        {
+            if (_root is null)
+            {
+                throw new InvalidOperationException("Root command not defined");
+            }
+
+            return System.CommandLine.CommandExtensions.InvokeAsync(_root, args);
         }
 
         private static void BindCommands(System.CommandLine.Command parent, IReadOnlyCollection<ICommand>? commands)
@@ -101,11 +151,26 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MiscrosoftCommandLine
 
             command.Options?.OfType<System.CommandLine.Option>().ToList().ForEach(cmd.AddOption);
 
-            System.CommandLine.Handler.SetHandler(cmd, (context) =>
+            if (command is IAsyncCommand asyncCommand)
             {
-                command.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
-                command.Action?.Invoke(command);
-            });
+                System.CommandLine.Handler.SetHandler(cmd, async (context) =>
+                {
+                    asyncCommand.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
+
+                    if (asyncCommand.AsyncAction is not null)
+                    {
+                        await asyncCommand.AsyncAction.Invoke(asyncCommand).ConfigureAwait(false);
+                    }
+                });
+            }
+            else
+            {
+                System.CommandLine.Handler.SetHandler(cmd, (context) =>
+                {
+                    command.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
+                    command.Action?.Invoke(command);
+                });
+            }
 
             BindCommands(cmd, command.Subcommands);
 
