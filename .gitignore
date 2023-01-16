@@ -1,7 +1,5 @@
 source/.vs/
 source/console-toolkit/bin/
 source/console-toolkit/obj/
-source/sample/obj/
 source/test/bin/
 source/test/obj/
-source/sample/bin/
