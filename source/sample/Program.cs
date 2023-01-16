@@ -148,32 +148,30 @@ namespace Tuvi.Toolkit.Cli.Sample
                         },
                         action: async (cmd) =>
                         {
-                            var timeOption = cmd.FindOption<int>("--time");
-                            if(timeOption?.Value is int value)
+                            var value = cmd.GetRequiredValue<int>("--time");
+
+                            Console.Write("Process");
+
+                            var cancel = new CancellationTokenSource();
+                            cancel.CancelAfter(value);
+
+                            try
                             {
-                                Console.Write("Process");
-
-                                var cancel = new CancellationTokenSource();
-                                cancel.CancelAfter(value);
-
-                                try
+                                while(!cancel.IsCancellationRequested)
                                 {
-                                    while(!cancel.IsCancellationRequested)
-                                    {
-                                        await Task.Delay(1000, cancel.Token).ConfigureAwait(false);
+                                    await Task.Delay(1000, cancel.Token).ConfigureAwait(false);
 
-                                        if (!cancel.IsCancellationRequested)
-                                        {
-                                            Console.Write(".");
-                                        }
+                                    if (!cancel.IsCancellationRequested)
+                                    {
+                                        Console.Write(".");
                                     }
                                 }
-                                catch(OperationCanceledException)
-                                { }
-                                finally
-                                {
-                                    Console.Write(Environment.NewLine);
-                                }
+                            }
+                            catch(OperationCanceledException)
+                            { }
+                            finally
+                            {
+                                Console.Write(Environment.NewLine);
                             }
                         }
                     )

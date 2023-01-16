@@ -18,18 +18,8 @@
 
 namespace Tuvi.Toolkit.Cli.CommandLine
 {
-    public interface IOption
+    public interface ICustomValue<T>
     {
-        IReadOnlyCollection<string> Names { get; }
-        string? Description { get; }
-        string? ValueHelpName { get; }
-        bool AllowMultipleValue { get; }
-        bool IsRequired { get; }
-        object? Value { get; }
-    }
-
-    public interface IOption<T> : IOption
-    {
-        new T? Value { get; }
+        T Parse(string data);
     }
 }

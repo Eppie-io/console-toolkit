@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//   Copyright 2022 Eppie(https://eppie.io)
+//   Copyright 2023 Eppie(https://eppie.io)
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 using NUnit.Framework;
+using Tuvi.Toolkit.Data;
 
 namespace Tuvi.Toolkit.Cli.CommandLine.Test
 {
@@ -93,6 +94,9 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                                 Parser.CreateOption<Guid>(
                                     names: new List<string> {"-g", "--guid", "/Guid" }
                                 ),
+                                Parser.CreateCustomOption<Toolkit.Data.CustomData>(
+                                    names: new List<string> {"-c", "--custom", "/Custom" }
+                                ),
                             },
                             action: typeAction
                         ),
@@ -149,7 +153,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                                     )
                                 },
                                 action: async (cmd) => {
-                                    var delayTime = cmd.FindOption<int>("--delay-time")?.Value ?? 0;
+                                    var delayTime = cmd.GetRequiredValue<int>("--delay-time");
                                     await Task.Delay(delayTime).ConfigureAwait(false);
 
                                     if(asyncCommandAction is not null)
@@ -173,7 +177,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         {
             var rootCommand = CreateRoot(actionRoot: (cmd) =>
             {
-                var optionE = cmd.FindOption<IEnumerable<string>>("-E");
+                var optionE = cmd.GetOption<IEnumerable<string>>("-E");
 
                 if (countE > 0)
                 {
@@ -186,7 +190,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                     });
                 }
 
-                var optionA = cmd.FindOption<string[]>("-A");
+                var optionA = cmd.GetOption<string[]>("-A");
 
                 if (countA > 0)
                 {
@@ -256,7 +260,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                 isCommandCalled = true;
                 foreach ((string name, bool exist, object? value) in options)
                 {
-                    var option = cmd.FindOption(name);
+                    var option = cmd.GetOption(name);
                     Assert.That(option, exist ? Is.Not.Null : Is.Null);
 
                     if (exist && value is not null)
@@ -285,34 +289,37 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             [Random(1)] short guidC,
             [Random(1)] long guidD)
         {
-            var @bool = b > 0;
+            var @bool = b % 2 == 0;
 
             var guid = CreateGuid(guidA, guidB, guidC, guidD);
 
-            var args = $""" type --bool={@bool} --int={i} --uint={u} --long={l} --float={f} --double={d} --guid="{guid}" """;
+            var args = $""" type --bool={@bool} --int={i} --uint={u} --long={l} --float={f} --double={d} --guid="{guid}" --custom="{i} {@bool}" """;
 
             var rootCommand = CreateRoot(actionType: (cmd) =>
             {
-                var optionBool = cmd.FindOption<bool>("--bool");
+                var optionBool = cmd.GetOption<bool>("--bool");
                 Assert.That(optionBool?.Value, Is.EqualTo(@bool));
 
-                var optionInt = cmd.FindOption<int>("--int");
+                var optionInt = cmd.GetOption<int>("--int");
                 Assert.That(optionInt?.Value, Is.EqualTo(i));
 
-                var optionUInt = cmd.FindOption<uint>("--uint");
+                var optionUInt = cmd.GetOption<uint>("--uint");
                 Assert.That(optionUInt?.Value, Is.EqualTo(u));
 
-                var optionLong = cmd.FindOption<long>("--long");
+                var optionLong = cmd.GetOption<long>("--long");
                 Assert.That(optionLong?.Value, Is.EqualTo(l));
 
-                var optionFloat = cmd.FindOption<float>("--float");
+                var optionFloat = cmd.GetOption<float>("--float");
                 Assert.That(optionFloat?.Value, Is.EqualTo(f).Within(1e-5));
 
-                var optionDouble = cmd.FindOption<double>("--double");
+                var optionDouble = cmd.GetOption<double>("--double");
                 Assert.That(optionDouble?.Value, Is.EqualTo(d).Within(1e-11));
 
-                var optionGuid = cmd.FindOption<Guid>("--guid");
+                var optionGuid = cmd.GetOption<Guid>("--guid");
                 Assert.That(optionGuid?.Value, Is.EqualTo(guid));
+
+                var optionCustom = cmd.GetOption<CustomData>("--custom");
+                Assert.That(optionCustom?.Value, Is.EqualTo(new CustomData { IntValue = i, BoolValue = @bool }));
             });
 
             Parser.Bind(rootCommand);
@@ -335,7 +342,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                 },
                 actionAsyncCommand: async (cmd) =>
                 {
-                    var processTime = cmd.FindOption<int>("--process-time")?.Value ?? 0;
+                    int processTime = cmd.GetValueOrDefualt<int>("--process-time");
                     var token = new CancellationTokenSource(processTime).Token;
 
                     try
@@ -360,10 +367,9 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             if (Parser is IAsyncParser asyncParser && command is not null)
             {
                 asyncParser.Bind(command);
+                var task = asyncParser.InvokeAsync(args);
 
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-                var task = asyncParser.InvokeAsync(args);
 
                 await task.ConfigureAwait(false);
 

@@ -1,6 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////
 //
-//   Copyright 2022 Eppie(https://eppie.io)
+//   Copyright 2023 Eppie(https://eppie.io)
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -26,14 +26,35 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
         public IReadOnlyCollection<ICommand>? Subcommands { get; set; }
         public Action<ICommand>? Action { get; set; }
 
-        public IOption? FindOption(string name)
+        public IOption? GetOption(string name)
         {
             return (from option in Options where option.Names.Contains(name) select option).FirstOrDefault();
         }
 
-        public IOption<T>? FindOption<T>(string name)
+        public IOption<T>? GetOption<T>(string name)
         {
-            return FindOption(name) as IOption<T>;
+            return GetOption(name) as IOption<T>;
+        }
+
+        public IOption<T> GetRequiredOption<T>(string name)
+        {
+            return GetOption<T>(name) ?? throw new InvalidOperationException();
+        }
+
+        public T? GetValueOrDefualt<T>(string optionName)
+        {
+            var option = GetOption<T>(optionName);
+            if (option is not null)
+            {
+                return option.Value;
+            }
+
+            return default;
+        }
+
+        public T GetRequiredValue<T>(string optionName)
+        {
+            return GetValueOrDefualt<T>(optionName) ?? throw new InvalidOperationException();
         }
     }
 
