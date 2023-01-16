@@ -1,6 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////
 //
-//   Copyright 2022 Eppie(https://eppie.io)
+//   Copyright 2023 Eppie(https://eppie.io)
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -26,8 +26,12 @@ namespace Tuvi.Toolkit.Cli.CommandLine
         IReadOnlyCollection<ICommand>? Subcommands { get; }
         Action<ICommand>? Action { get; }
 
-        IOption? FindOption(string name);
-        IOption<T>? FindOption<T>(string name);
+        IOption? GetOption(string name);
+        IOption<T>? GetOption<T>(string name);
+
+        IOption<T> GetRequiredOption<T>(string name);
+        T? GetValueOrDefualt<T>(string optionName);
+        T GetRequiredValue<T>(string optionName);
     }
 
     public interface IAsyncCommand : ICommand

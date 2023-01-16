@@ -1,6 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////
 //
-//   Copyright 2022 Eppie(https://eppie.io)
+//   Copyright 2023 Eppie(https://eppie.io)
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -90,6 +90,17 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             return new Option<T>(names, description, allowMultipleValue, isRequired, valueHelpName);
         }
 
+        public IOption<T> CreateCustomOption<T>(
+            IReadOnlyCollection<string> names,
+            string? description = null,
+            bool isDefault = false, bool
+            allowMultipleValue = false,
+            bool isRequired = false,
+            string? valueHelpName = null) where T : ICustomValue<T>, new()
+        {
+            return new CustomOption<T>(names, description, isDefault, allowMultipleValue, isRequired, valueHelpName);
+        }
+
         public virtual void Bind(ICommand root)
         {
             _root = BindCommand(root, true);
@@ -176,5 +187,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 
             return cmd;
         }
+
+
     }
 }

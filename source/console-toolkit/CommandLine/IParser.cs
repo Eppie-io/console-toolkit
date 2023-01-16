@@ -1,6 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////
 //
-//   Copyright 2022 Eppie(https://eppie.io)
+//   Copyright 2023 Eppie(https://eppie.io)
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -42,6 +42,14 @@ namespace Tuvi.Toolkit.Cli.CommandLine
             bool allowMultipleValue = false,
             bool isRequired = false,
             string? valueHelpName = null);
+
+        IOption<T> CreateCustomOption<T>(
+            IReadOnlyCollection<string> names,
+            string? description = null,
+            bool isDefault = false,
+            bool allowMultipleValue = false,
+            bool isRequired = false,
+            string? valueHelpName = null) where T : ICustomValue<T>, new();
 
         int Invoke(string commandLine);
         int Invoke(params string[] args);
