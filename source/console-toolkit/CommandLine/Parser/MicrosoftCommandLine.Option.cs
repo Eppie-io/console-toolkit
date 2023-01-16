@@ -98,9 +98,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             bool isRequired = false,
             string? valueHelpName = null)
             : base(names, ParseArgument, description, isDefault, allowMultipleValue, isRequired, valueHelpName)
-        {
-            Arity = ArgumentArity.OneOrMore;
-        }
+        { }
 
         public static T ParseArgument(ArgumentResult result)
         {
