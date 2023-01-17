@@ -48,56 +48,60 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                     options: new List<IOption>
                     {
                         Parser.CreateOption<IEnumerable<string>>(
-                            names: new List<string> {"-E", "--enumerable" },
+                            names: new[] {"-E", "--enumerable" },
                             allowMultipleValue: true
                         ),
                         Parser.CreateOption<string[]>(
-                            names: new List<string> {"-A", "--array" },
+                            names: new[] {"-A", "--array" },
                             allowMultipleValue: true
                         )
                     },
-                    subcommands: new List<ICommand>
+                    subcommands: new[]
                     {
                         Parser.CreateCommand(
                             name: "type",
                             options: new List<IOption>
                             {
                                 Parser.CreateOption<int>(
-                                    names: new List<string> {"-i", "--int", "/Int" }
+                                    names: new[] { "-i", "--int", "/Int" }
                                 ),
                                 Parser.CreateOption<uint>(
-                                    names: new List<string> {"-u", "--uint", "/UInt" },
+                                    names: new[] { "-u", "--uint", "/UInt" },
                                     getDefaultValue: () => DefaultUIntValue
                                 ),
                                 Parser.CreateOption<long>(
-                                    names: new List<string> {"-l", "--long", "/Int64" }
+                                    names: new[] { "-l", "--long", "/Int64" }
                                 ),
                                 Parser.CreateOption<bool>(
-                                    names: new List<string> {"-b", "--bool", "/Boolean" }
+                                    names: new[] { "-b", "--bool", "/Boolean" }
                                 ),
                                 Parser.CreateOption<float>(
-                                    names: new List<string> {"-f", "--float", "/Single" }
+                                    names: new[] { "-f", "--float", "/Single" }
                                 ),
                                 Parser.CreateOption<double>(
-                                    names: new List<string> {"-d", "--double", "/Double" }
+                                    names: new[] { "-d", "--double", "/Double" }
                                 ),
                                 Parser.CreateOption<string>(
-                                    names: new List<string> {"-s", "--str", "/String" }
+                                    names: new[] { "-s", "--str", "/String" }
                                 ),
                                 Parser.CreateOption<Data.TestEnum>(
-                                    names: new List<string> {"-e", "--enum", "/EnumOption" },
+                                    names: new[] { "-e", "--enum", "/EnumOption" },
                                     getDefaultValue: () => Data.TestEnum.None
                                 ),
                                 Parser.CreateOption<DateTime>(
-                                    names: new List<string> {"-t", "--date-time", "/DateTime" }
+                                    names: new[] { "-t", "--date-time", "/DateTime" }
                                 ),
                                 Parser.CreateOption<Guid>(
-                                    names: new List<string> {"-g", "--guid", "/Guid" }
+                                    names: new[] { "-g", "--guid", "/Guid" }
                                 ),
                                 Parser.CreateCustomOption<CustomData>(
-                                    names: new List<string> {"-c", "--custom", "/Custom" },
-                                    parseValue: CustomData.Parser
-
+                                    names: new[] { "-c", "--custom", "/Custom" },
+                                    parseValue: CustomData.Parse
+                                ),
+                                Parser.CreateCustomOption<IEnumerable<CustomData>>(
+                                    names: new[] { "-C", "--custom-item", "/CustomItem" },
+                                    parseValue: CustomData.ParseList,
+                                    allowMultipleValue: true
                                 ),
                             },
                             action: typeAction
@@ -111,11 +115,11 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                             options: new List<IOption>
                             {
                                 Parser.CreateOption<uint>(
-                                    names: new List<string> {"-n", "--not-required", "/NotRequired" },
+                                    names: new[] {"-n", "--not-required", "/NotRequired" },
                                     valueHelpName: "uint"
                                 ),
                                 Parser.CreateOption<int>(
-                                    names: new List<string> {"-r", "--required", "/Required" },
+                                    names: new[] {"-r", "--required", "/Required" },
                                     isRequired: true,
                                     valueHelpName: "int"
                                 ),
@@ -144,14 +148,14 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                                 options: new List<IOption>
                                 {
                                     asyncParser.CreateOption<int>(
-                                        names: new List<string> {"-d", "--delay-time", "/DelayTime" },
+                                        names: new[] {"-d", "--delay-time", "/DelayTime" },
                                         isRequired: true
                                     ),
                                     asyncParser.CreateOption<int>(
-                                        names: new List<string> {"-p", "--process-time", "/ProcessTime" }
+                                        names: new[] { "-p", "--process-time", "/ProcessTime" }
                                     ),
                                     asyncParser.CreateOption<object>(
-                                        names: new List<string> {"-o", "--param", "/Param" }
+                                        names: new[] { "-o", "--param", "/Param" }
                                     )
                                 },
                                 action: async (cmd) => {
@@ -255,6 +259,9 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         [Test]
         [TestCase($"""type --custom "0 False" """, false, ExpectedResult = true)]
         [TestCase($"""type --custom "-1 true" """, false, ExpectedResult = true)]
+        [TestCase($"""type --custom "0 False" --custom "1 True" """, false, ExpectedResult = false)]
+        [TestCase($"""type --custom-item "0 False" --custom-item "1 True" """, false, ExpectedResult = true)]
+        [TestCase($"""type --custom-item "0 False" """, false, ExpectedResult = true)]
         [TestCase($"""type --custom "1 1" """, true, ExpectedResult = false)]
         [TestCase($"""type --custom "1 0" """, true, ExpectedResult = false)]
         [TestCase($"""type --custom "1234567890987654321 False" """, true, ExpectedResult = false)]

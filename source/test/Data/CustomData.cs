@@ -25,7 +25,7 @@ namespace Tuvi.Toolkit.Data
         public required int IntValue { get; init; }
         public required bool BoolValue { get; init; }
 
-        public static CustomData Parser(string data)
+        protected static CustomData Parse(string data)
         {
             try
             {
@@ -44,6 +44,16 @@ namespace Tuvi.Toolkit.Data
             catch (OverflowException) { }
 
             throw new CustomDataParseException(nameof(data));
+        }
+
+        public static CustomData Parse(IEnumerable<string> data)
+        {
+            return Parse(data.FirstOrDefault() ?? string.Empty);
+        }
+
+        public static IEnumerable<CustomData> ParseList(IEnumerable<string> data)
+        {
+            return data.Select(Parse);
         }
     }
 

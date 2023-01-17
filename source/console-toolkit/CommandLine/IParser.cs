@@ -45,7 +45,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine
 
         IOption<T> CreateCustomOption<T>(
             IReadOnlyCollection<string> names,
-            Func<string, T> parseValue,
+            Func<IEnumerable<string>, T> parseValue,
             string? description = null,
             bool isDefault = false,
             bool allowMultipleValue = false,
