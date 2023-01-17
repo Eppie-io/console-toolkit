@@ -16,7 +16,6 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-using System.CommandLine;
 using System.CommandLine.Parsing;
 
 namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
@@ -88,28 +87,28 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
     }
 
     internal class CustomOption<T> : Option<T>
-        where T : ICustomValue<T>, new()
     {
         public CustomOption(
             IReadOnlyCollection<string> names,
+            Func<string, T> parseValue,
             string? description = null,
             bool isDefault = false,
             bool allowMultipleValue = false,
             bool isRequired = false,
             string? valueHelpName = null)
-            : base(names, ParseArgument, description, isDefault, allowMultipleValue, isRequired, valueHelpName)
+            : base(names, (arg) => ParseArgument(arg, parseValue), description, isDefault, allowMultipleValue, isRequired, valueHelpName)
         { }
 
-        public static T ParseArgument(ArgumentResult result)
+        public static T ParseArgument(ArgumentResult result, Func<string, T> parser)
         {
             var data = string.Empty;
 
-            if(result.Tokens.Count > 0)
+            if (result.Tokens.Count > 0)
             {
                 data = result.Tokens[0].Value;
             }
 
-            return new T().Parse(data);
+            return parser(data);
         }
     }
 }

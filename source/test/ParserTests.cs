@@ -94,8 +94,10 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                                 Parser.CreateOption<Guid>(
                                     names: new List<string> {"-g", "--guid", "/Guid" }
                                 ),
-                                Parser.CreateCustomOption<Toolkit.Data.CustomData>(
-                                    names: new List<string> {"-c", "--custom", "/Custom" }
+                                Parser.CreateCustomOption<CustomData>(
+                                    names: new List<string> {"-c", "--custom", "/Custom" },
+                                    parseValue: CustomData.Parser
+
                                 ),
                             },
                             action: typeAction
@@ -237,15 +239,36 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         {
             var isCommandCalled = false;
 
-            Action<ICommand> action = (cmd) =>
+            void action(ICommand cmd)
             {
                 isCommandCalled = true;
-            };
+            }
 
             var rootCommand = CreateRoot(actionCommand: action, actionType: action, actionRequired: action);
 
             Parser.Bind(rootCommand);
             Parser.Invoke(args);
+
+            return isCommandCalled;
+        }
+
+        [Test]
+        [TestCase($"""type --custom "0 False" """, false, ExpectedResult = true)]
+        [TestCase($"""type --custom "-1 true" """, false, ExpectedResult = true)]
+        [TestCase($"""type --custom "1 1" """, true, ExpectedResult = false)]
+        [TestCase($"""type --custom "1 0" """, true, ExpectedResult = false)]
+        [TestCase($"""type --custom "1234567890987654321 False" """, true, ExpectedResult = false)]
+        [TestCase($"""type --custom "1.1 True" """, true, ExpectedResult = false)]
+        [TestCase($"""type --custom "FakeInt True" """, true, ExpectedResult = false)]
+        [TestCase($"""type --custom "0 FakeBool" """, true, ExpectedResult = false)]
+        public bool TestCustomOption(string args, bool expectException)
+        {
+            var isCommandCalled = false;
+
+            AssertThrow<CustomDataParseException>(expectException, () =>
+            {
+                isCommandCalled = TestCallCommand(args);
+            });
 
             return isCommandCalled;
         }
@@ -402,6 +425,19 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             Func<IAsyncCommand, Task>? actionAsyncCommand = null)
         {
             return AsyncRoot?.Invoke(actionCommand, actionAsyncCommand);
+        }
+
+        private static void AssertThrow<TException>(bool expectException, TestDelegate code)
+            where TException : Exception
+        {
+            if (expectException)
+            {
+                Assert.Throws<TException>(code);
+            }
+            else
+            {
+                Assert.DoesNotThrow(code);
+            }
         }
     }
 }

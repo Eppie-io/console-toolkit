@@ -45,11 +45,12 @@ namespace Tuvi.Toolkit.Cli.CommandLine
 
         IOption<T> CreateCustomOption<T>(
             IReadOnlyCollection<string> names,
+            Func<string, T> parseValue,
             string? description = null,
             bool isDefault = false,
             bool allowMultipleValue = false,
             bool isRequired = false,
-            string? valueHelpName = null) where T : ICustomValue<T>, new();
+            string? valueHelpName = null);
 
         int Invoke(string commandLine);
         int Invoke(params string[] args);

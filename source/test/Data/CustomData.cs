@@ -17,45 +17,53 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 using System.Globalization;
-using Tuvi.Toolkit.Cli.CommandLine;
 
 namespace Tuvi.Toolkit.Data
 {
-    internal struct CustomData : ICustomValue<CustomData>, IEquatable<CustomData>
+    internal record CustomData
     {
-        public int IntValue { get; set; }
-        public bool BoolValue { get; set; }
+        public required int IntValue { get; init; }
+        public required bool BoolValue { get; init; }
 
-        public CustomData Parse(string data)
+        public static CustomData Parser(string data)
         {
-            var args = data.Split();
-
-            if (args.Length >= 2)
+            try
             {
-                return new()
+                var args = data.Split();
+
+                if (args.Length == 2)
                 {
-                    IntValue = int.Parse(args[0], CultureInfo.DefaultThreadCurrentUICulture),
-                    BoolValue = bool.Parse(args[1]),
-                };
+                    return new()
+                    {
+                        IntValue = int.Parse(args[0], CultureInfo.CurrentCulture),
+                        BoolValue = bool.Parse(args[1]),
+                    };
+                }
             }
+            catch (FormatException) { }
+            catch (OverflowException) { }
 
-            throw new InvalidOperationException();
+            throw new CustomDataParseException(nameof(data));
+        }
+    }
+
+    public class CustomDataParseException : Exception
+    {
+        private static string DefaultMessage { get; } = "Data can't be parsed";
+
+        public CustomDataParseException(string paramName)
+            : base(DefaultMessage, new ArgumentException(DefaultMessage, paramName))
+        {
         }
 
-        public bool Equals(CustomData other)
+        protected CustomDataParseException()
+            : base(DefaultMessage)
         {
-            return IntValue.Equals(other.IntValue) && 
-                BoolValue.Equals(other.BoolValue);
         }
 
-        public override bool Equals(object? obj)
+        protected CustomDataParseException(string message, Exception innerException)
+            : base(message, innerException)
         {
-            return obj is CustomData data && Equals(data);
-        }
-
-        public override int GetHashCode()
-        {
-            throw new NotImplementedException();
         }
     }
 }
