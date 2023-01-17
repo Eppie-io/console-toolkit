@@ -30,8 +30,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine
         IOption<T>? GetOption<T>(string name);
 
         IOption<T> GetRequiredOption<T>(string name);
-        T? GetValueOrDefualt<T>(string optionName);
-        T GetRequiredValue<T>(string optionName);
+        T? GetRequiredValue<T>(string optionName);
     }
 
     public interface IAsyncCommand : ICommand

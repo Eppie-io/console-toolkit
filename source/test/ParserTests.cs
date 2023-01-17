@@ -237,10 +237,10 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         {
             var isCommandCalled = false;
 
-            Action<ICommand> action = (cmd) =>
+            void action(ICommand cmd)
             {
                 isCommandCalled = true;
-            };
+            }
 
             var rootCommand = CreateRoot(actionCommand: action, actionType: action, actionRequired: action);
 
@@ -342,7 +342,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                 },
                 actionAsyncCommand: async (cmd) =>
                 {
-                    int processTime = cmd.GetValueOrDefualt<int>("--process-time");
+                    var processTime = cmd.GetRequiredValue<int>("--process-time");
                     var token = new CancellationTokenSource(processTime).Token;
 
                     try
