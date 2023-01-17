@@ -38,23 +38,13 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 
         public IOption<T> GetRequiredOption<T>(string name)
         {
-            return GetOption<T>(name) ?? throw new InvalidOperationException();
+            return GetOption<T>(name) ?? throw new ArgumentException($"Option '{name}' not found", nameof(name));
         }
 
-        public T? GetValueOrDefualt<T>(string optionName)
+        public T? GetRequiredValue<T>(string optionName)
         {
-            var option = GetOption<T>(optionName);
-            if (option is not null)
-            {
-                return option.Value;
-            }
-
-            return default;
-        }
-
-        public T GetRequiredValue<T>(string optionName)
-        {
-            return GetValueOrDefualt<T>(optionName) ?? throw new InvalidOperationException();
+            var option = GetRequiredOption<T>(optionName);
+            return option.Value;
         }
     }
 

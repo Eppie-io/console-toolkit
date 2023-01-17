@@ -365,7 +365,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                 },
                 actionAsyncCommand: async (cmd) =>
                 {
-                    int processTime = cmd.GetValueOrDefualt<int>("--process-time");
+                    var processTime = cmd.GetRequiredValue<int>("--process-time");
                     var token = new CancellationTokenSource(processTime).Token;
 
                     try
