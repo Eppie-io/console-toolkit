@@ -55,7 +55,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test.Data
                 yield return new TestCaseData($"type /String {StringWithoutSpace}", true, new (string, bool, object?)[] { ("-s", true, StringWithoutSpace) });
 
                 yield return new TestCaseData($"type --bool", true, new (string, bool, object?)[] { ("--bool", true, true) });
-                yield return new TestCaseData($"type -b:{Boolean.FalseString}", true, new (string, bool, object?)[] { ("/Boolean", true, false) });
+                yield return new TestCaseData($"type -b:{bool.FalseString}", true, new (string, bool, object?)[] { ("/Boolean", true, false) });
 
                 yield return new TestCaseData($"""type /DateTime "{Today}" """, true, new (string, bool, object?)[] { ("/DateTime", true, Today) });
                 yield return new TestCaseData($"""type --date-time "{Date}" """, true, new (string, bool, object?)[] { ("-t", true, Date) });
@@ -82,9 +82,9 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test.Data
                     ("/Unknown", false, null),
                 });
 
-                yield return new TestCaseData($"""type --custom "{CustomDataValue}" """, true, new (string, bool, object?)[]
+                yield return new TestCaseData($"""type --custom "{int.MinValue} {bool.TrueString}" """, true, new (string, bool, object?)[]
                 {
-                    ("/Custom", true, new CustomData(){IntValue = CustomIntData, BoolValue = CustomBoolData}),
+                    ("/Custom", true, new CustomData(){IntValue = int.MinValue, BoolValue = true}),
                 });
             }
         }
@@ -93,10 +93,6 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test.Data
         private static readonly DateTime Today = DateTime.Today;
         private static readonly Guid EmptyGuid = Guid.Empty;
         private static readonly Guid NewGuid = TestContext.CurrentContext.Random.NextGuid();
-
-        private static int CustomIntData { get; } = int.MinValue;
-        private static bool CustomBoolData { get; } = true;
-        private static string CustomDataValue { get; } = $"{CustomIntData} {CustomBoolData}";
 
         private static string StringWithSpace { get; } = "This is text with space";
         private static string StringWithoutSpace { get; } = "Thisisoneword";

@@ -92,13 +92,14 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 
         public IOption<T> CreateCustomOption<T>(
             IReadOnlyCollection<string> names,
+            Func<IEnumerable<string>, T> parseValue,
             string? description = null,
             bool isDefault = false, bool
             allowMultipleValue = false,
             bool isRequired = false,
-            string? valueHelpName = null) where T : ICustomValue<T>, new()
+            string? valueHelpName = null)
         {
-            return new CustomOption<T>(names, description, isDefault, allowMultipleValue, isRequired, valueHelpName);
+            return new CustomOption<T>(names, parseValue, description, isDefault, allowMultipleValue, isRequired, valueHelpName);
         }
 
         public virtual void Bind(ICommand root)

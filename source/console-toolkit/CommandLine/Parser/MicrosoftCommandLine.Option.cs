@@ -88,28 +88,24 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
     }
 
     internal class CustomOption<T> : Option<T>
-        where T : ICustomValue<T>, new()
     {
         public CustomOption(
             IReadOnlyCollection<string> names,
+            Func<IEnumerable<string>, T> parseValue,
             string? description = null,
             bool isDefault = false,
             bool allowMultipleValue = false,
             bool isRequired = false,
             string? valueHelpName = null)
-            : base(names, ParseArgument, description, isDefault, allowMultipleValue, isRequired, valueHelpName)
-        { }
-
-        public static T ParseArgument(ArgumentResult result)
+            : base(names, (arg) => ParseArgument(arg, parseValue), description, isDefault, allowMultipleValue, isRequired, valueHelpName)
         {
-            var data = string.Empty;
+            Arity = allowMultipleValue ? ArgumentArity.OneOrMore : ArgumentArity.ExactlyOne;
+        }
 
-            if(result.Tokens.Count > 0)
-            {
-                data = result.Tokens[0].Value;
-            }
-
-            return new T().Parse(data);
+        public static T ParseArgument(ArgumentResult result, Func<IEnumerable<string>, T> parser)
+        {
+            var data = result.Tokens.Select((token) => token.Value);
+            return parser(data);
         }
     }
 }
