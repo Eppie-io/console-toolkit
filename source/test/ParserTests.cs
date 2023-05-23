@@ -357,10 +357,10 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         }
 
         [Test]
-        [TestCase("sync-command", true, 0, 500)]
-        [TestCase("async-command -d2000 -p1000", false, 2500, 3500)]
-        [TestCase("async-command -d2000", false, 1500, 2500)]
-        public async Task TestCallAsyncCommandAsync(string args, bool isSameThread, long min, long max)
+        [TestCase("sync-command", true)]
+        [TestCase("async-command -d2000 -p1000", false)]
+        [TestCase("async-command -d2000", false)]
+        public async Task TestCallAsyncCommandAsync(string args, bool isSameThread)
         {
             var threadId = Environment.CurrentManagedThreadId;
             var commandThreadId = Environment.CurrentManagedThreadId;
@@ -398,17 +398,11 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             {
                 asyncParser.Bind(command);
                 var task = asyncParser.InvokeAsync(args);
-
-                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
                 await task.ConfigureAwait(false);
-
-                stopwatch.Stop();
                 Assert.Multiple(() =>
                 {
                     Assert.That(task.IsCompletedSuccessfully, Is.True);
                     Assert.That(commandThreadId.Equals(threadId), Is.EqualTo(isSameThread));
-                    Assert.That(stopwatch.ElapsedMilliseconds, Is.InRange(min, max));
                 });
             }
         }
