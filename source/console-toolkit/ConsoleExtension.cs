@@ -84,7 +84,7 @@ namespace Tuvi.Toolkit.Cli
             return ReadBool(query, Console.Write);
         }
 
-        public static string? ReadSecret(char? filler = '*')
+        public static string? ReadSecretLine(char? filler = '*')
         {
             var psw = string.Empty;
             ConsoleKey key;
