@@ -20,11 +20,9 @@ namespace Tuvi.Toolkit.Cli
 {
     public static class ConsoleExtension
     {
-        private const string BackspaceConst = "\b \b";
         private const string Yes = "y";
         private const string No = "n";
 
-        public static string Backspace => BackspaceConst;
         public static string NewLine => Environment.NewLine;
 
 
@@ -86,7 +84,7 @@ namespace Tuvi.Toolkit.Cli
             return ReadBool(query, Console.Write);
         }
 
-        public static string? ReadPassword()
+        public static string? ReadSecret(char? filler = '*')
         {
             var psw = string.Empty;
             ConsoleKey key;
@@ -99,10 +97,16 @@ namespace Tuvi.Toolkit.Cli
                 if (key == ConsoleKey.Backspace && psw.Length > 0)
                 {
                     psw = psw[0..^1];
+
+                    if(!string.IsNullOrEmpty(filler.ToString()))
+                    {
+                        EraseConsoleChar();
+                    }
                 }
                 else if (!char.IsControl(keyInfo.KeyChar))
                 {
                     psw += keyInfo.KeyChar;
+                    Console.Write(filler);
                 }
             } while (key != ConsoleKey.Enter);
 
@@ -111,5 +115,21 @@ namespace Tuvi.Toolkit.Cli
             return psw;
         }
 
+        private static void EraseConsoleChar()
+        {
+            if (Console.CursorLeft > 0)
+            {
+                --Console.CursorLeft;
+                Console.Write(' ');
+                --Console.CursorLeft;
+            }
+            else if (Console.CursorTop > 0)
+            {
+                --Console.CursorTop;
+                Console.CursorLeft = Console.WindowWidth - 1;
+                Console.Write(' ');
+                Console.CursorLeft = Console.WindowWidth - 1;
+            }
+        }
     }
 }
