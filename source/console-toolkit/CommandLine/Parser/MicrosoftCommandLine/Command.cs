@@ -16,25 +16,40 @@
 //                                                                              //
 // ---------------------------------------------------------------------------- //
 
-namespace Tuvi.Toolkit.Cli.CommandLine
+namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 {
-    public interface ICommand
+    internal class Command : ICommand
     {
-        string Name { get; }
-        string? Description { get; }
-        IReadOnlyCollection<IOption>? Options { get; }
-        IReadOnlyCollection<ICommand>? Subcommands { get; }
-        Action<ICommand>? Action { get; }
+        public required string Name { get; init; }
+        public string? Description { get; set; }
+        public IReadOnlyCollection<IOption>? Options { get; set; }
+        public IReadOnlyCollection<ICommand>? Subcommands { get; set; }
+        public Action<ICommand>? Action { get; set; }
 
-        IOption? GetOption(string name);
-        IOption<T>? GetOption<T>(string name);
+        public IOption? GetOption(string name)
+        {
+            return (from option in Options where option.Names.Contains(name) select option).FirstOrDefault();
+        }
 
-        IOption<T> GetRequiredOption<T>(string name);
-        T? GetRequiredValue<T>(string optionName);
+        public IOption<T>? GetOption<T>(string name)
+        {
+            return GetOption(name) as IOption<T>;
+        }
+
+        public IOption<T> GetRequiredOption<T>(string name)
+        {
+            return GetOption<T>(name) ?? throw new ArgumentException($"Option '{name}' not found", nameof(name));
+        }
+
+        public T? GetRequiredValue<T>(string optionName)
+        {
+            IOption<T> option = GetRequiredOption<T>(optionName);
+            return option.Value;
+        }
     }
 
-    public interface IAsyncCommand : ICommand
+    internal class AsyncCommand : Command, ICommand, IAsyncCommand
     {
-        Func<IAsyncCommand, Task>? AsyncAction { get; }
+        public Func<IAsyncCommand, Task>? AsyncAction { get; set; }
     }
 }
