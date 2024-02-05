@@ -86,33 +86,48 @@ namespace Tuvi.Toolkit.Cli
 
         public static string? ReadSecretLine(char? filler = '*')
         {
-            var psw = string.Empty;
-            ConsoleKey key;
+            bool ctrlC = Console.TreatControlCAsInput;
 
-            do
+            try
             {
-                var keyInfo = Console.ReadKey(intercept: true);
-                key = keyInfo.Key;
+                var psw = string.Empty;
+                ConsoleKey key;
 
-                if (key == ConsoleKey.Backspace && psw.Length > 0)
+                Console.TreatControlCAsInput = true;
+
+                do
                 {
-                    psw = psw[0..^1];
+                    var keyInfo = Console.ReadKey(intercept: true);
+                    key = keyInfo.Key;
 
-                    if(!string.IsNullOrEmpty(filler.ToString()))
+                    if (key == ConsoleKey.Backspace && psw.Length > 0)
                     {
-                        EraseConsoleChar();
+                        psw = psw[0..^1];
+
+                        if (!string.IsNullOrEmpty(filler.ToString()))
+                        {
+                            EraseConsoleChar();
+                        }
                     }
-                }
-                else if (!char.IsControl(keyInfo.KeyChar))
-                {
-                    psw += keyInfo.KeyChar;
-                    Console.Write(filler);
-                }
-            } while (key != ConsoleKey.Enter);
+                    else if (!char.IsControl(keyInfo.KeyChar))
+                    {
+                        psw += keyInfo.KeyChar;
+                        Console.Write(filler);
+                    }
+                    else if (char.IsControl(keyInfo.KeyChar) && keyInfo.Key == ConsoleKey.C)
+                    {
+                        return null;
+                    }
+                } while (key != ConsoleKey.Enter);
 
-            Console.WriteLine();
+                Console.WriteLine();
 
-            return psw;
+                return psw;
+            }
+            finally
+            {
+                Console.TreatControlCAsInput = ctrlC;
+            }
         }
 
         private static void EraseConsoleChar()
