@@ -1,26 +1,28 @@
-﻿////////////////////////////////////////////////////////////////////////////////
-//
-//   Copyright 2023 Eppie(https://eppie.io)
-//
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
-//
-//       http://www.apache.org/licenses/LICENSE-2.0
-//
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
-//
-////////////////////////////////////////////////////////////////////////////////
+﻿// ---------------------------------------------------------------------------- //
+//                                                                              //
+//   Copyright 2024 Eppie (https://eppie.io)                                    //
+//                                                                              //
+//   Licensed under the Apache License, Version 2.0 (the "License"),            //
+//   you may not use this file except in compliance with the License.           //
+//   You may obtain a copy of the License at                                    //
+//                                                                              //
+//       http://www.apache.org/licenses/LICENSE-2.0                             //
+//                                                                              //
+//   Unless required by applicable law or agreed to in writing, software        //
+//   distributed under the License is distributed on an "AS IS" BASIS,          //
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   //
+//   See the License for the specific language governing permissions and        //
+//   limitations under the License.                                             //
+//                                                                              //
+// ---------------------------------------------------------------------------- //
 
 namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 {
     internal class Parser : IParser, IAsyncParser
     {
         private System.CommandLine.Command? _root;
+
+        private System.CommandLine.Command Root => _root ?? throw new InvalidOperationException("Root command not defined");
 
         public virtual ICommand CreateRoot(
             string description = "",
@@ -82,12 +84,9 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             bool isRequired = false,
             string? valueHelpName = null)
         {
-            if (getDefaultValue is not null)
-            {
-                return new Option<T>(names, getDefaultValue, description, allowMultipleValue, isRequired, valueHelpName);
-            }
-
-            return new Option<T>(names, description, allowMultipleValue, isRequired, valueHelpName);
+            return getDefaultValue is null
+                ? new CommonOption<T>(names, description, allowMultipleValue, isRequired, valueHelpName)
+                : new CommonOption<T>(names, getDefaultValue, description, allowMultipleValue, isRequired, valueHelpName);
         }
 
         public IOption<T> CreateCustomOption<T>(
@@ -104,52 +103,36 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 
         public virtual void Bind(ICommand root)
         {
+            ArgumentNullException.ThrowIfNull(root);
+
             _root = BindCommand(root, true);
         }
 
         public virtual int Invoke(string commandLine)
         {
-            if (_root is null)
-            {
-                throw new InvalidOperationException("Root command not defined");
-            }
-
-            return System.CommandLine.CommandExtensions.Invoke(_root, commandLine);
+            return System.CommandLine.CommandExtensions.Invoke(Root, commandLine);
         }
 
         public virtual int Invoke(params string[] args)
         {
-            if (_root is null)
-            {
-                throw new InvalidOperationException("Root command not defined");
-            }
-
-            return System.CommandLine.CommandExtensions.Invoke(_root, args);
+            return System.CommandLine.CommandExtensions.Invoke(Root, args);
         }
 
         public virtual Task<int> InvokeAsync(string commandLine)
         {
-            if (_root is null)
-            {
-                throw new InvalidOperationException("Root command not defined");
-            }
-
-            return System.CommandLine.CommandExtensions.InvokeAsync(_root, commandLine);
+            return System.CommandLine.CommandExtensions.InvokeAsync(Root, commandLine);
         }
 
         public virtual Task<int> InvokeAsync(params string[] args)
         {
-            if (_root is null)
-            {
-                throw new InvalidOperationException("Root command not defined");
-            }
-
-            return System.CommandLine.CommandExtensions.InvokeAsync(_root, args);
+            return System.CommandLine.CommandExtensions.InvokeAsync(Root, args);
         }
 
         private static void BindCommands(System.CommandLine.Command parent, IReadOnlyCollection<ICommand>? commands)
         {
-            foreach (var command in commands ?? Enumerable.Empty<ICommand>())
+            ArgumentNullException.ThrowIfNull(parent);
+
+            foreach (ICommand command in commands ?? Enumerable.Empty<ICommand>())
             {
                 parent.AddCommand(BindCommand(command, false));
             }
@@ -157,7 +140,9 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 
         private static System.CommandLine.Command BindCommand(ICommand command, bool isRoot = false)
         {
-            System.CommandLine.Command cmd = (isRoot)
+            ArgumentNullException.ThrowIfNull(command);
+
+            System.CommandLine.Command cmd = isRoot
                 ? new System.CommandLine.RootCommand(command.Description ?? "")
                 : new System.CommandLine.Command(command.Name, command.Description);
 
@@ -167,7 +152,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             {
                 System.CommandLine.Handler.SetHandler(cmd, async (context) =>
                 {
-                    asyncCommand.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
+                    asyncCommand.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => updater.UpdateValue(context.ParseResult));
 
                     if (asyncCommand.AsyncAction is not null)
                     {
@@ -179,7 +164,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             {
                 System.CommandLine.Handler.SetHandler(cmd, (context) =>
                 {
-                    command.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => { updater.UpdateValue(context.ParseResult); });
+                    command.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => updater.UpdateValue(context.ParseResult));
                     command.Action?.Invoke(command);
                 });
             }
@@ -188,7 +173,5 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 
             return cmd;
         }
-
-
     }
 }
