@@ -23,7 +23,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 {
     internal interface IValueUpdater
     {
-        void UpdateValue(System.CommandLine.Parsing.ParseResult result);
+        void UpdateValue(ParseResult result);
     }
 
     internal class CommonOption<T> : System.CommandLine.Option<T>, IOption<T>, IValueUpdater
@@ -34,58 +34,47 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             bool allowMultipleValue = false,
             bool isRequired = false,
             string? valueHelpName = null)
-            : base(aliases: names.ToArray(), description: description)
+            : base(name: names.First(), aliases: names.ToArray())
         {
             Names = names;
-            ArgumentHelpName = valueHelpName;
+            ValueHelpName = valueHelpName;
+            Description = description;
             AllowMultipleArgumentsPerToken = allowMultipleValue;
-            IsRequired = isRequired;
+            Required = isRequired;
         }
 
         public CommonOption(
             IReadOnlyCollection<string> names,
-            Func<T> getDefaultValue,
+            Func<ArgumentResult, T> getDefaultValue,
             string? description = null,
             bool allowMultipleValue = false,
             bool isRequired = false,
             string? valueHelpName = null)
-            : base(aliases: names.ToArray(), getDefaultValue: getDefaultValue, description: description)
+            : base(name: names.First(), aliases: names.ToArray())
         {
             Names = names;
-            ArgumentHelpName = valueHelpName;
+            ValueHelpName = valueHelpName;
+            Description = description;
+            DefaultValueFactory = getDefaultValue;
             AllowMultipleArgumentsPerToken = allowMultipleValue;
-            IsRequired = isRequired;
-        }
-
-        protected CommonOption(
-            IReadOnlyCollection<string> names,
-            ParseArgument<T> parseArgument,
-            string? description,
-            bool isDefault,
-            bool allowMultipleValue,
-            bool isRequired,
-            string? valueHelpName)
-            : base(aliases: names.ToArray(), parseArgument: parseArgument, isDefault: isDefault, description: description)
-        {
-            Names = names;
-            ArgumentHelpName = valueHelpName;
-            AllowMultipleArgumentsPerToken = allowMultipleValue;
-            IsRequired = isRequired;
+            Required = isRequired;
         }
 
         // interface IOption<T>
         public IReadOnlyCollection<string> Names { get; init; }
-        public string? ValueHelpName { get => ArgumentHelpName; set => ArgumentHelpName = value; }
+        public string? ValueHelpName { get; set; }
         public bool AllowMultipleValue { get => AllowMultipleArgumentsPerToken; set => AllowMultipleArgumentsPerToken = value; }
         public T? Value { get; private set; }
+        public bool IsRequired => Required;
+
         object? IOption.Value => Value;
 
         // interface IValueUpdater
-        public void UpdateValue(System.CommandLine.Parsing.ParseResult result)
+        public void UpdateValue(ParseResult result)
         {
             ArgumentNullException.ThrowIfNull(result);
 
-            Value = result.GetValueForOption(this);
+            Value = result.GetValue(this);
         }
     }
 
@@ -95,13 +84,13 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             IReadOnlyCollection<string> names,
             Func<IEnumerable<string>, T> parseValue,
             string? description = null,
-            bool isDefault = false,
             bool allowMultipleValue = false,
             bool isRequired = false,
             string? valueHelpName = null)
-            : base(names, (arg) => ParseArgument(arg, parseValue), description, isDefault, allowMultipleValue, isRequired, valueHelpName)
+            : base(names, description, allowMultipleValue, isRequired, valueHelpName)
         {
             Arity = allowMultipleValue ? ArgumentArity.OneOrMore : ArgumentArity.ExactlyOne;
+            CustomParser = (arg) => ParseArgument(arg, parseValue);
         }
 
         private static T ParseArgument(ArgumentResult result, Func<IEnumerable<string>, T> parser)
