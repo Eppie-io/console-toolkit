@@ -93,12 +93,11 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             IReadOnlyCollection<string> names,
             Func<IEnumerable<string>, T> parseValue,
             string? description = null,
-            bool isDefault = false, bool
-            allowMultipleValue = false,
+            bool allowMultipleValue = false,
             bool isRequired = false,
             string? valueHelpName = null)
         {
-            return new CustomOption<T>(names, parseValue, description, isDefault, allowMultipleValue, isRequired, valueHelpName);
+            return new CustomOption<T>(names, parseValue, description, allowMultipleValue, isRequired, valueHelpName);
         }
 
         public virtual void Bind(ICommand root)
@@ -110,22 +109,22 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 
         public virtual int Invoke(string commandLine)
         {
-            return System.CommandLine.CommandExtensions.Invoke(Root, commandLine);
+            return Root.Parse(commandLine).Invoke();
         }
 
         public virtual int Invoke(params string[] args)
         {
-            return System.CommandLine.CommandExtensions.Invoke(Root, args);
+            return Root.Parse(args).Invoke();
         }
 
         public virtual Task<int> InvokeAsync(string commandLine)
         {
-            return System.CommandLine.CommandExtensions.InvokeAsync(Root, commandLine);
+            return Root.Parse(commandLine).InvokeAsync();
         }
 
         public virtual Task<int> InvokeAsync(params string[] args)
         {
-            return System.CommandLine.CommandExtensions.InvokeAsync(Root, args);
+            return Root.Parse(args).InvokeAsync();
         }
 
         private static void BindCommands(System.CommandLine.Command parent, IReadOnlyCollection<ICommand>? commands)
@@ -134,7 +133,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 
             foreach (ICommand command in commands ?? Enumerable.Empty<ICommand>())
             {
-                parent.AddCommand(BindCommand(command, false));
+                parent.Add(BindCommand(command, false));
             }
         }
 
@@ -146,13 +145,16 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
                 ? new System.CommandLine.RootCommand(command.Description ?? "")
                 : new System.CommandLine.Command(command.Name, command.Description);
 
-            command.Options?.OfType<System.CommandLine.Option>().ToList().ForEach(cmd.AddOption);
+            command.Options?.OfType<System.CommandLine.Option>().ToList().ForEach(cmd.Add);
 
             if (command is IAsyncCommand asyncCommand)
             {
-                System.CommandLine.Handler.SetHandler(cmd, async (context) =>
+                cmd.SetAction(async (parseResult) =>
                 {
-                    asyncCommand.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => updater.UpdateValue(context.ParseResult));
+                    asyncCommand.Options?
+                        .OfType<IValueUpdater>()
+                        .ToList()
+                        .ForEach(updater => updater.UpdateValue(parseResult));
 
                     if (asyncCommand.AsyncAction is not null)
                     {
@@ -162,9 +164,13 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             }
             else
             {
-                System.CommandLine.Handler.SetHandler(cmd, (context) =>
+                cmd.SetAction((parseResult) =>
                 {
-                    command.Options?.OfType<IValueUpdater>().ToList().ForEach((updater) => updater.UpdateValue(context.ParseResult));
+                    command.Options?
+                        .OfType<IValueUpdater>()
+                        .ToList()
+                        .ForEach(updater => updater.UpdateValue(parseResult));
+
                     command.Action?.Invoke(command);
                 });
             }
