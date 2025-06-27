@@ -67,7 +67,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                                 ),
                                 Parser.CreateOption<uint>(
                                     names: new[] { "-u", "--uint", "/UInt" },
-                                    getDefaultValue: (arg) => DefaultUIntValue
+                                    getDefaultValue: () => DefaultUIntValue
                                 ),
                                 Parser.CreateOption<long>(
                                     names: new[] { "-l", "--long", "/Int64" }
@@ -86,7 +86,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                                 ),
                                 Parser.CreateOption<Data.TestEnum>(
                                     names: new[] { "-e", "--enum", "/EnumOption" },
-                                    getDefaultValue: (arg) => Data.TestEnum.None
+                                    getDefaultValue: () => Data.TestEnum.None
                                 ),
                                 Parser.CreateOption<DateTime>(
                                     names: new[] { "-t", "--date-time", "/DateTime" }

@@ -38,7 +38,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine
         IOption<T> CreateOption<T>(
             IReadOnlyCollection<string> names,
             string? description = null,
-            Func<System.CommandLine.Parsing.ArgumentResult, T>? getDefaultValue = null,
+            Func<T>? getDefaultValue = null,
             bool allowMultipleValue = false,
             bool isRequired = false,
             string? valueHelpName = null);

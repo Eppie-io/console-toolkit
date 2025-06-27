@@ -45,7 +45,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
 
         public CommonOption(
             IReadOnlyCollection<string> names,
-            Func<ArgumentResult, T> getDefaultValue,
+            Func<T> getDefaultValue,
             string? description = null,
             bool allowMultipleValue = false,
             bool isRequired = false,
@@ -55,7 +55,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Parser.MicrosoftCommandLine
             Names = names;
             ValueHelpName = valueHelpName;
             Description = description;
-            DefaultValueFactory = getDefaultValue;
+            DefaultValueFactory = (arg) => getDefaultValue();
             AllowMultipleArgumentsPerToken = allowMultipleValue;
             Required = isRequired;
         }
