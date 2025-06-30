@@ -47,7 +47,6 @@ namespace Tuvi.Toolkit.Cli.CommandLine
             IReadOnlyCollection<string> names,
             Func<IEnumerable<string>, T> parseValue,
             string? description = null,
-            bool isDefault = false,
             bool allowMultipleValue = false,
             bool isRequired = false,
             string? valueHelpName = null);
