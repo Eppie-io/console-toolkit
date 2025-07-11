@@ -153,6 +153,11 @@ namespace Tuvi.Toolkit.Cli
         /// <returns>All entered lines joined by Environment.NewLine, or null if no input.</returns>
         public static string? ReadMultiLine(string query, string endMarker = "EOF")
         {
+            if (string.IsNullOrWhiteSpace(endMarker))
+            {
+                throw new ArgumentNullException(nameof(endMarker));
+            }
+
             if (!string.IsNullOrEmpty(query))
             {
                 Console.WriteLine(query);

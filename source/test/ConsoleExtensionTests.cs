@@ -42,5 +42,37 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             var result = ConsoleExtension.ReadMultiLine("Enter text:", endMarker: "END");
             Assert.That(result, Is.Null);
         }
+
+        [TestCase("")]
+        [TestCase("   ")]
+        [TestCase("          ")]
+        public void ReadMultiLineThrowsArgumentNullExceptionWhenEndMarkerIsWhitespace(string invalidEndMarker)
+        {
+            var ex = Assert.Throws<ArgumentNullException>(() =>
+                ConsoleExtension.ReadMultiLine("Enter text:", invalidEndMarker)
+            );
+
+            Assert.That(ex.ParamName, Is.EqualTo("endMarker"));
+        }
+
+        [Test]
+        public void ReadMultiLineReturnsNullWhenReadLineReturnsNull()
+        {
+            var input = new StringReader("");
+            Console.SetIn(input);
+
+            var result = ConsoleExtension.ReadMultiLine("Enter text:");
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void ReadMultiLineReturnsEmptyStringWhenUserInputsEmptyLineThenEndMarker()
+        {
+            var input = new StringReader(Environment.NewLine + "EOF" + Environment.NewLine);
+            Console.SetIn(input);
+
+            var result = ConsoleExtension.ReadMultiLine("Enter text:");
+            Assert.That(result, Is.EqualTo("")); 
+        }
     }
 }
