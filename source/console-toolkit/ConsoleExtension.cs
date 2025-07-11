@@ -144,5 +144,34 @@ namespace Tuvi.Toolkit.Cli
                 Console.CursorLeft = Console.WindowWidth - 1;
             }
         }
+
+        /// <summary>
+        /// Reads multiple lines from the console until the endMarker is entered on a new line (default: "EOF").
+        /// </summary>
+        /// <param name="query">Prompt to display before input.</param>
+        /// <param name="endMarker">Line that signals the end of input. Default is "EOF".</param>
+        /// <returns>All entered lines joined by Environment.NewLine, or null if no input.</returns>
+        public static string? ReadMultiLine(string query, string endMarker = "EOF")
+        {
+            if (!string.IsNullOrEmpty(query))
+            {
+                Console.WriteLine(query);
+            }
+
+            List<string> lines = [];
+
+            while (true)
+            {
+                string? line = Console.ReadLine();
+                if (line == null || line == endMarker)
+                {
+                    break;
+                }
+
+                lines.Add(line);
+            }
+
+            return lines.Count > 0 ? string.Join(Environment.NewLine, lines) : null;
+        }
     }
 }
