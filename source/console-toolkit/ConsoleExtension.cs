@@ -163,7 +163,12 @@ namespace Tuvi.Toolkit.Cli
             while (true)
             {
                 string? line = Console.ReadLine();
-                if (line == null || line == endMarker)
+                if (line == null)
+                {
+                    return null;
+                }
+
+                if (line == endMarker)
                 {
                     break;
                 }
