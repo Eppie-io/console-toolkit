@@ -407,6 +407,32 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             }
         }
 
+        [Test]
+        public void TestMultiLineInputCommand()
+        {
+            var inputLines = new[] { "first", "second", "EOF" };
+            var input = new StringReader(string.Join(Environment.NewLine, inputLines) + Environment.NewLine);
+            Console.SetIn(input);
+            string? captured = null;
+
+            var rootCommand = Parser.CreateRoot(
+                subcommands: new[]
+                {
+                    Parser.CreateCommand(
+                        name: "multiline",
+                        action: (cmd) =>
+                        {
+                            captured = ConsoleExtension.ReadMultiLine("Enter multiline:");
+                        })
+                }
+            );
+
+            Parser.Bind(rootCommand);
+            Parser.Invoke("multiline");
+
+            Assert.That(captured, Is.EqualTo("first" + Environment.NewLine + "second"));
+        }
+
         private static Guid CreateGuid(int a, short b, short c, long d)
         {
             return new Guid(a, b, c, BitConverter.GetBytes(d));
