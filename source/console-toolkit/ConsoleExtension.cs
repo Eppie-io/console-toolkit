@@ -150,7 +150,7 @@ namespace Tuvi.Toolkit.Cli
         /// </summary>
         /// <param name="query">Prompt to display before input.</param>
         /// <param name="endMarker">Line that signals the end of input. Default is "EOF".</param>
-        /// <returns>All entered lines joined by Environment.NewLine, or null if no input.</returns>
+        /// <returns>All entered lines joined by Environment.NewLine, or null if no input was provided before the terminator or end of stream.</returns>
         public static string? ReadMultiLine(string query, string endMarker = "EOF")
         {
             if (string.IsNullOrWhiteSpace(endMarker))
@@ -168,9 +168,9 @@ namespace Tuvi.Toolkit.Cli
             while (true)
             {
                 string? line = Console.ReadLine();
-                if (line == null)
+                if (line is null)
                 {
-                    return null;
+                    break;
                 }
 
                 if (line == endMarker)
