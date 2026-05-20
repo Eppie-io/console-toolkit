@@ -48,9 +48,9 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
         [TestCase("          ")]
         public void ReadMultiLineThrowsArgumentNullExceptionWhenEndMarkerIsWhitespace(string invalidEndMarker)
         {
-            var ex = Assert.Throws<ArgumentNullException>(() =>
+            var ex = Assert.Throws<ArgumentNullException>((Action)(() =>
                 ConsoleExtension.ReadMultiLine("Enter text:", invalidEndMarker)
-            );
+            ));
 
             Assert.That(ex.ParamName, Is.EqualTo("endMarker"));
         }

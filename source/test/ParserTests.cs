@@ -399,11 +399,11 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
                 asyncParser.Bind(command);
                 var task = asyncParser.InvokeAsync(args);
                 await task.ConfigureAwait(false);
-                Assert.Multiple(() =>
+                Assert.Multiple((Action)(() =>
                 {
                     Assert.That(task.IsCompletedSuccessfully, Is.True);
                     Assert.That(commandThreadId.Equals(threadId), Is.EqualTo(isSameThread));
-                });
+                }));
             }
         }
 
@@ -454,7 +454,7 @@ namespace Tuvi.Toolkit.Cli.CommandLine.Test
             return AsyncRoot?.Invoke(actionCommand, actionAsyncCommand);
         }
 
-        private static void AssertThrow<TException>(bool expectException, TestDelegate code)
+        private static void AssertThrow<TException>(bool expectException, Action code)
             where TException : Exception
         {
             if (expectException)
